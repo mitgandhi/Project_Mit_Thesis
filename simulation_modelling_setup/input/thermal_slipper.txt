@@ -1,0 +1,27 @@
+// ------------------------- general informations -------------------------- //
+
+section general
+
+// mesh file
+meshFile	D:\DATA\Reddy\Caspar\V60N110-S4\Run_1\IM\slipperswashplate\thermal\slipper.inp
+// inertial relief option: 1->active, 0->not active
+IR		0
+// max number of iterations for the linear solver
+maxIters		2000
+// solver tolerance
+tolerance		1E-06
+
+
+endsection
+
+// -------------------------- Volume sets ---------------------------------- //
+// list of volume set and associated material name (located in materials.txt)
+
+section materials
+
+endsection
+
+// -------------------------- Boundaries ---------------------------------- //
+
+// -------------------------- Constraints ---------------------------------- //
+

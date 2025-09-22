@@ -1,0 +1,48 @@
+// ------------------------- general informations -------------------------- //
+
+section general
+
+// mesh file
+meshFile	Z:\Studenten\Mit\HSP\IM\pistoncylinder\thermal\piston_th.inp
+// inertial relief option: 1->active, 0->not active
+IR		1
+// max number of iterations for the linear solver
+maxIters		2000
+// solver tolerance
+tolerance		1E-06
+
+
+endsection
+
+// -------------------------- Volume sets ---------------------------------- //
+// list of volume set and associated material name (located in materials.txt)
+
+section materials
+piston_volume    Piston_steel
+
+endsection
+
+// -------------------------- Boundaries ---------------------------------- //
+
+section boundary
+
+type    mixed
+set     Case
+Tinf      46.9	// [C]
+h      2232	// [W/Km^2]
+
+
+endsection
+
+section boundary
+
+type    mixed
+set     DC
+Tinf      46.9	// [C]
+h      2232	// [W/Km^2]
+
+
+endsection
+
+// -------------------------- Constraints ---------------------------------- //
+

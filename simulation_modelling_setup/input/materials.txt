@@ -1,0 +1,97 @@
+// -------------------------- Materials definition ------------------------- //
+
+section material
+
+name    CB_steel
+E    2.1e11	// [Pa]
+nu    0.29	// []
+rho    7760	// [kg/m^3]
+lambda    43	// [W/mK]
+alpha    1.1E-05	// []
+
+endsection
+
+
+section material
+
+name    BU_bronze
+E    9.3e10	// [Pa]
+nu    0.34	// []
+rho    8120	// [kg/m^3]
+lambda    63	// [W/mK]
+alpha    2.04E-05	// []
+
+endsection
+
+
+section material
+
+name    Piston_steel
+E    2.1e11	// [Pa]
+nu    0.29	// []
+rho    7850	// [kg/m^3]
+lambda    40	// [W/mK]
+alpha    1.1E-05	// []
+
+endsection
+
+
+section material
+
+name    VP_steel
+E    2.1e11	// [Pa]
+nu    0.29	// []
+rho    7700	// [kg/m^3]
+lambda    51.9	// [W/mK]
+alpha    1.2E-05	// []
+
+endsection
+
+
+section material
+
+name    VP_bronze
+E    1e11	// [Pa]
+nu    0.34	// []
+rho    9000	// [kg/m^3]
+lambda    71	// [W/mK]
+alpha    1.93E-05	// []
+
+endsection
+
+
+section material
+
+name    cast_steel
+E    1.74e11	// [Pa]
+nu    0.275	// []
+rho    7200	// [kg/m^3]
+lambda    35.2	// [W/mK]
+alpha    1.25E-05	// []
+
+endsection
+
+
+section material
+
+name    S_steel
+E    2.1e11	// [Pa]
+nu    0.29	// []
+rho    7800	// [kg/m^3]
+lambda    52	// [W/mK]
+alpha    1.32E-05	// []
+
+endsection
+
+
+section material
+
+name    S_brass
+E    1.1e11	// [Pa]
+nu    0.34	// []
+rho    8900	// [kg/m^3]
+lambda    54	// [W/mK]
+alpha    1.87E-05	// []
+
+endsection
+

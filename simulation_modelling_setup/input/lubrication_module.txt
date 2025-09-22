@@ -1,0 +1,22 @@
+﻿// ------------------------------------------------------------------------- //
+// FSTI GAP DESIGN lubrication_module input file
+// ------------------------------------------------------------------------- //
+
+section lubrication_module
+	// Solve the piston - bushing interface
+	solve_piston	1
+
+	// Solve the cylinder block - valve plate interface
+	solve_block	0
+
+	// Solve the slipper - swashplate interface
+	solve_slipper	0
+
+	// The number of shaft revolutions the lubrication module will solve
+	n_lubrication_revolutions	6
+
+	// Solve the pump under wobble Pump conditions
+	WobblePump	0
+
+endsection
+

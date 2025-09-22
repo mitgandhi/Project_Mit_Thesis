@@ -1,0 +1,43 @@
+﻿// ------------------------------------------------------------------------- //
+// FSTI GAP DESIGN operatingconditions input file
+// ------------------------------------------------------------------------- //
+
+section operatingconditions
+	// Working mode 1:Pumping 2:Motoring
+	mode	1
+
+	// Number of pistons
+	npistons	9
+
+	// Rotational speed - The rotational speed of the shaft. [rpm]
+	speed	2500
+
+	// Swash plate angle - The current swash plate angle. [deg]
+	beta	14
+
+	// Maximum swash plate angle [deg]
+	betamax	14
+
+	// Name of the pressure module file - Determines the path to the displacement chamber pressure file created by the pressure module. e.g. ./input/pfile.txt
+	pModuleFile	./input/pfile.txt
+
+	// High pressure - The high pressure level at the outlet for pumping mode or the inlet for motoring mode. [bar]
+	HP	320
+
+	// Low pressure - The low pressure level at the inlet for pumping mode or the outlet for motoring mode. [bar]
+	LP	1
+
+	// Case pressure - Constant pressure inside the main pump housing. [bar]
+	pCase	1
+
+	// Temperature high pressure - The temperature of the fluid at the high pressure port. [C]
+	T_HP	45
+
+	// Temperature low pressure - The temperature of the fluid at the low pressure port. [C]
+	T_LP	44
+
+	// Temperature leakage - The temperature of the fluid in the leakage line. [C]
+	T_Leak	60
+
+endsection
+

@@ -1,0 +1,91 @@
+﻿// ------------------------------------------------------------------------- //
+// FSTI GAP DESIGN oil input file
+// ------------------------------------------------------------------------- //
+
+section general
+	// Oil type [] 0: use user defined constant viscosity, density and bulk modulus 1: use user defined linear formula for viscosity, density and bulk modulus 2: use HLP32 3: use user defined 2 4: use ISO VG 46
+	oiltype	8
+
+	// Oil thermal conductivity [W/mK]
+	oillambda	0.13
+
+	// Oil heat capacity [J/kgK]
+	oilC	1880
+
+endsection
+
+section constant_properties
+	// Oil dynamic viscosity [Pa s]
+	oilviscosity	0.0705
+
+	// Oil density [kg/m^3]
+	oildensity	871
+
+	// Oil bulk modulus [Pa]
+	oilK	1.586e9
+
+endsection
+
+section user_defined
+	// pmin
+	pmin	0
+
+	// pmax
+	pmax	0
+
+	// Tmin
+	Tmin	0
+
+	// 
+	Tmax	0
+
+	// Viscosity weighting factor
+	w	0
+
+	// Define the function used in the exponential that models the variation of kinematic viscosity with pressure. Use 0 for linear, 1 for power law.
+	nupf	1
+
+	// First coefficient for pressure-viscosity dependence
+	nup1	0
+
+	// Second coefficient for pressure-viscosity dependence
+	nup2	0
+
+	// First coefficient for temperature-viscosity dependence
+	nuT1	0
+
+	// Second coefficient for temperature-viscosity dependence
+	nuT2	0
+
+	// Density at 0 Pa and 20 C
+	rho0	0
+
+	// First coefficient for pressure-density dependence
+	rhop1	0
+
+	// Second coefficient for pressure-density dependence
+	rhop2	0
+
+	// Coefficient for temperature-density dependence
+	rhoT	0
+
+	// 
+	rhopT	0
+
+	// 
+	rhop2T	0
+
+	// Coefficient
+	c_2	0
+
+	// Coefficient
+	d_2	0
+
+	// Coefficient
+	g_0	0
+
+	// Coefficient
+	s_0	0
+
+endsection
+

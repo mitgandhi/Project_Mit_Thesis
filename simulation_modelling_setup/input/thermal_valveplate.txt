@@ -1,0 +1,29 @@
+// ------------------------- general informations -------------------------- //
+
+section general
+
+// mesh file
+meshFile	E:\sims\IM_S4\blockvalveplate\thermal_vp_with_endcase\th_VP_only_shared.inp
+// inertial relief option: 1->active, 0->not active
+IR		1
+// max number of iterations for the linear solver
+maxIters		2000
+// solver tolerance
+tolerance		1E-06
+// limit the calculation of the thermal deflection
+calc_deflect_on    ALL
+
+
+endsection
+
+// -------------------------- Volume sets ---------------------------------- //
+// list of volume set and associated material name (located in materials.txt)
+
+section materials
+
+endsection
+
+// -------------------------- Boundaries ---------------------------------- //
+
+// -------------------------- Constraints ---------------------------------- //
+

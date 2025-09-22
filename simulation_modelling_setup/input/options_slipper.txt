@@ -1,0 +1,193 @@
+﻿// ------------------------------------------------------------------------- //
+// FSTI GAP DESIGN options_slipper input file
+// ------------------------------------------------------------------------- //
+
+section general
+	// Solve Reynolds equation using viscosity at (1) cell center or (2) cell faces.
+	reynolds_mu	2
+
+	// Flow Type for Slipper pocket pressure 0: turbulent flow through piston and slipper orifices 1: laminar flow through piston and slipper throttles
+	flowtype	0
+
+	// Orifice Coefficient for Slipper pocket pressure - [-]
+	alphaD_KG	0.6
+
+	// Slipper Macro geometry
+	EnableSlipperMacro	0
+
+	// Indicate file location for slipper macro file, i.e. input/slipper/slippermacro.dat
+	SlipperMacroFile	
+
+	// Solve energy equation in the gap
+	CalcEnergy	1
+
+	// Solve elastic deformation due to pressure on the slipper
+	SlipperPressureDeformation	1
+
+	// Consider the thermo elastic problem for the slipper
+	SlipperThermoElastic	1
+
+	// Solve elastic deformation due to pressure on the swashplate
+	SwashplatePressureDeformation	1
+
+	// Consider the heat transfer problem for the swashplate
+	SwashplateThermoElastic	1
+
+	// This option is recommended to stay enabled and considers the Reynolds normal squeeze effect from transient pressure deformations.
+	EHDsqueeze	1
+
+	// Influence Matrix Folder Path - Indicate folder location of influence matrix for the slipper/swashplate. This should be the same path as used in the influGen project directory.
+	IMpath	D:\DATA\Reddy\Caspar\V60N110-S4\Run_1\IM\slipperswashplate\IMs
+
+	// Slipper/Swashplate surface roughness Rq value. Note 2x this value is used to consider the 'minimum fluid film thickness' Recommended value is between 0.05 and 0.15 - [um]
+	RoughnessRq	0.15
+
+	// Indicate whether or not to include surface roughness in the Reynolds equation. DO NOT enable.
+	EnableRoughness	0
+
+	// This option enables a hybrid based force balance numerical method. Enable only upon the advice of the Maha Lab
+	HybridForceBalance	0
+
+	// This option enables a force balance before solving the Fluid-Structure-Interaction at each timestep.
+	preFSIforceBalance	0
+
+	// Choose from Implicit or Explicit Ordinary Differential Equation solving modes. Implicit mode is recommended.
+	Explicit	0
+
+	// This will enable the full picard iteration for all calculations (Not normally recommended)
+	ComplexPicard	0
+
+	// Debug mode enables extra logging during process. Default: Deselected (Only for advanced debugging)
+	DebugMode	0
+
+	// Dense mode will only solve for a single time step with dense fluid structure interaction results. Default: Deselected (Only for advanced debugging)
+	DenseMode	0
+
+endsection
+
+section numeric
+	// Simulation Degree step
+	phistep_deg	1.0
+
+	// Over-relaxation coeff for Gauss-Seidel solution for Reynolds
+	AlphaReynolds	1.9
+
+	// Over-relaxation coeff for Gauss-Seidel solution for Energy
+	AlphaEnergy	1.1
+
+	// Under relaxation parameter for the pocket pressure calculation
+	AlphapG	0.2
+
+	// under relaxation parameter for the TEHD calculation
+	AlphaTEHD	0.4
+
+	// This value should ONLY be changed at the advice of the Maha Lab
+	Newton1	0.1
+
+	// This value should ONLY be changed at the advice of the Maha Lab
+	Newton2	50.0
+
+	// This value should ONLY be changed at the advice of the Maha Lab
+	Newton3	10.0
+
+	// This specifies the residual tolerance for the Fluid-Structure-Interaction convergence loop. Normally a value between 1e-3 and 1e-4 is recommended.
+	FSIresidTol	1e-3
+
+	// Relaxation parameter for the contact pressure calculation [-]
+	AlphaContact	1.0
+
+	// Saturation limit for the contact deformation calculation
+	contact_def_lim	5.0
+
+	// This specifies the residual tolerance for the Fluid-Structure-Interaction convergence loop. Normally a value between 1e-3 and 1e-4 is recommended.
+	contact_p_lim	200.0
+
+endsection
+
+section position
+	// hG1
+	hG1	10
+
+	// hG2
+	hG2	10
+
+	// hG3
+	hG3	10
+
+endsection
+
+section fluidgrid
+	// Volumes in circumferential direction - Indicates the number of fluid cells defined in the gap circumferential direction.
+	N	180
+
+	// Volumes in radial direction.  In the case of a multi-land slipper design, use the help graphic below to determine the proper number for M.
+	M	30
+
+	// Volumes in height direction - Indicates the number of fluid cells defined in the gap height direction.
+	Q	20
+
+	// This is the radial ring of cells that slipper leakage will be calculated at. For a single land design, a value of 2 is recommended. For a multiland design, use the table or equations below to determine the proper value for SealingLand
+	SealingLand	2
+
+	// The radial fluid grid cell id of a groove connected to pocket pressure. Note this will allocate 3 cells to the groove. Set to a negative number to disable.
+	Groove1Location	-1
+
+	// The center radius of Groove 1
+	Groove1r	0
+
+	// The total dr of Groove 1
+	Groove1dr	0
+
+	// The radial fluid grid cell id of a groove connected to case pressure. Note this will allocate 3 cells to the groove. Set to a negative number to disable.
+	Groove2Location	-1
+
+	// The center radius of Groove 2
+	Groove2r	0
+
+	// The total dr of Groove 2
+	Groove2dr	0
+
+endsection
+
+section friction
+	// Enable (1) or disable (0) calculation of ball joint friction in the slipper module.
+	ball_joint_friction	0
+
+	// Coefficient of static friction in the ball joint.
+	mu_coef_static	0.10
+
+	// Coefficient of dynamic friction in the ball joint.
+	mu_coef_dyn	0.10
+
+	// Friction reduction factor in the ball joint. Typically less than 0.15.
+	C_joint	0.10
+
+	// mu_coef_pressure
+	mu_coef_pressure	0.0
+
+	// mu_coef_speed
+	mu_coef_speed	0.0
+
+endsection
+
+section springforce
+	// This is Slipper Hold Down force options - 0: Passive Hold-Down - 1: Active Hold-Down  - 2: Combination  - 3: Active Hold Down (with compressed piston spring force) - 4: Combination of Active and passive force with compressed piston spring force
+	SlipHD	0
+
+	// This input is only used for pump designs which feature a fixed-clearence holding device instead of the positive hold down mechanism.   - The height given here should be the maximum nominal clearence possible between the slipper and the swashplate during operation. It should be entered in microns and typical values are 25-50.   - For a positive hold down design, enter a value of -1000
+	hmaxG	0
+
+	// In a positive hold down mechanism pump design, this should be the total force acting on all of the rotating kit slippers in [N]. If the pump design uses a fixed-clearence holding device, this value is the penalty stiffness of the holder. A typical value for the holder stiffness is 50e6 [N/m]
+	Fslipperspring	0
+
+	// Force that hold down plate that exerts on slipper when maximum is reached. Default is 5e07 N/mm. Put 0 if passive hold down.
+	FSlipperHD	5e07
+
+	// Combination of spring constant at all slippers. If Spring constant is mentioned 0 then make sure that slipHD options 3 and 4 are not in used.
+	Fspringconstant	0
+
+	// 
+	Spring_length	0
+
+endsection
+

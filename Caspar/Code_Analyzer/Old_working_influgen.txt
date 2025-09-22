@@ -1,0 +1,3844 @@
+
+================================================================================
+File: E:/Job_1/SHS--Original/localCopy/influgen_2/src\dmatrix.h
+================================================================================
+
+#pragma once
+#include <vector>
+
+//This implements a "dense" style matrix and limited matrix operations using std::vector
+
+template <class T>
+class dmatrix
+{
+	std::vector<T> mat;
+
+public:
+	size_t m;
+	size_t n;
+
+	//Constructor
+	dmatrix(const size_t i, const size_t j)
+	{
+		m = i;
+		n = j;
+		
+		mat.resize(m*n, 0);
+	};
+
+	dmatrix()
+	{
+	};
+
+	void resize(const size_t i, const size_t j)
+	{
+		//clear the current matrix
+		mat.clear();
+
+		m = i;
+		n = j;
+		
+		mat.resize(m*n, 0);
+	};
+
+	//Direct matrix access (i,j)
+	__inline T & operator() (const size_t i, const size_t j) 
+	{
+		return mat[i*n+j];
+	}
+
+	__inline const T & operator() (const size_t i, const size_t j) const
+	{
+		return mat[i*n+j];
+	}
+
+	//Direct matrix access [i]
+	__inline T & operator[] (const int i) 
+	{
+		return mat[i];
+	}
+
+	//Scalar multiplication
+	dmatrix<T> & operator*= (const double s)
+	{
+		for(int i=0; i<m*n; i++)
+		{
+			mat[i] *= s;
+		}
+		return *this;
+	}
+
+	//Matrix multiplication
+	dmatrix<T> operator* (const dmatrix<T> & M) const
+	{
+		if(n != M.m)
+		{
+			//Invalid matrix sizes for multiplication
+			return dmatrix<T> (0,0);
+		}
+		dmatrix<T> r(m,M.n);
+
+		for(int i=0; i<m; i++)
+		{
+			for(int j=0; j<M.n; j++)
+			{
+				for(int k=0; k<n; k++)
+				{
+					//could optimize to use direct indexing?
+					r(i,j) += (*this)(i,k)*M(k,j);
+				}
+			}
+		} 
+
+		return r;
+	}
+
+	//Matrix addition
+	dmatrix<T> & operator+= (const dmatrix<T> M)
+	{
+		if(m != M.m || n != M.n)
+		{
+			//Invalid matrix sizes for addition so don't do anything
+			return *this;
+		}
+
+		for(int i=0; i<m*n; i++)
+		{
+			mat[i] += M(i);
+		}
+		return *this;
+	}
+
+	//Transpose
+	dmatrix<T> t()
+	{
+		dmatrix<T> trans(n,m);
+		for(int i=0; i<m; i++)
+		{
+			for(int j=0; j<n; j++)
+			{
+				trans(j,i) = (*this)(i,j);
+			}
+		}
+
+		return trans;
+	}
+
+	//Matrix Determinate
+	double det()
+	{
+		if(m != n)
+		{
+			return 0;
+		}
+
+		if(m == 1)
+		{
+			return mat[0];
+		}
+
+		//We will use Laplace's formula for the determinate
+		double d = 0;
+		for(int j=0; j<n; j++)
+		{
+			//Create the 'Minor' matrix
+			dmatrix M(m-1, n-1);
+			for(int r=1; r<m; r++)
+			{
+				for(int c=0; c<n; c++)
+				{
+					if(c < j)
+					{
+						M(r-1,c) = (*this)(r,c);
+					} else if (c > j)
+					{
+						M(r-1,c-1) = (*this)(r,c);
+					}
+				}
+			}
+			
+			d += pow(-1.0,j) * (*this)(0,j) * M.det();
+		}
+		return d;
+	}
+
+};
+
+
+
+================================================================================
+File: E:/Job_1/SHS--Original/localCopy/influgen_2/src\element.h
+================================================================================
+
+#pragma once
+#include <string>
+#include <vector>
+
+#include "node.h"
+
+struct element
+{
+	enum element_types
+	{
+		C3D4
+	};
+
+	element_types type;
+	std::vector<size_t> nodes;
+};
+
+
+
+================================================================================
+File: E:/Job_1/SHS--Original/localCopy/influgen_2/src\elementset.h
+================================================================================
+
+#pragma once
+#include <vector>
+
+#include "material.h"
+
+class elementset : public std::vector<size_t>
+{
+public:
+	material_type material;
+};
+
+
+
+================================================================================
+File: E:/Job_1/SHS--Original/localCopy/influgen_2/src\element_C3D4.cpp
+================================================================================
+
+#include "element_C3D4.h"
+
+C3D4::C3D4(const std::vector<const node*> &Nodes, material_type mat) : nodes(Nodes), material(mat)
+{
+}
+dmatrix<double> C3D4::Be()
+{
+	dmatrix<double> B(6,12);
+
+	const double a1 = y(2)*z(1) - y(1)*z(2) + y(1)*z(3) - y(3)*z(1) - y(2)*z(3) + y(3)*z(2);
+	const double a2 = y(0)*z(2) - y(2)*z(0) - y(0)*z(3) + y(3)*z(0) + y(2)*z(3) - y(3)*z(2);
+	const double a3 = y(1)*z(0) - y(0)*z(1) + y(0)*z(3) - y(3)*z(0) - y(1)*z(3) + y(3)*z(1);
+	const double a4 = y(0)*z(1) - y(1)*z(0) - y(0)*z(2) + y(2)*z(0) + y(1)*z(2) - y(2)*z(1);
+	const double b1 = x(1)*z(2) - x(2)*z(1) - x(1)*z(3) + x(3)*z(1) + x(2)*z(3) - x(3)*z(2);
+	const double b2 = x(2)*z(0) - x(0)*z(2) + x(0)*z(3) - x(3)*z(0) - x(2)*z(3) + x(3)*z(2);
+	const double b3 = x(0)*z(1) - x(1)*z(0) - x(0)*z(3) + x(3)*z(0) + x(1)*z(3) - x(3)*z(1);
+	const double b4 = x(1)*z(0) - x(0)*z(1) + x(0)*z(2) - x(2)*z(0) - x(1)*z(2) + x(2)*z(1);
+	const double c1 = x(2)*y(1) - x(1)*y(2) + x(1)*y(3) - x(3)*y(1) - x(2)*y(3) + x(3)*y(2);
+	const double c2 = x(0)*y(2) - x(2)*y(0) - x(0)*y(3) + x(3)*y(0) + x(2)*y(3) - x(3)*y(2);
+	const double c3 = x(1)*y(0) - x(0)*y(1) + x(0)*y(3) - x(3)*y(0) - x(1)*y(3) + x(3)*y(1);
+	const double c4 = x(0)*y(1) - x(1)*y(0) - x(0)*y(2) + x(2)*y(0) + x(1)*y(2) - x(2)*y(1);
+
+	B(0,0)  = a1;
+	B(0,3)  = a2;
+	B(0,6)  = a3;
+	B(0,9)  = a4;
+
+	B(1,1)  = b1;
+	B(1,4)  = b2;
+	B(1,7)  = b3;
+	B(1,10) = b4;
+
+	B(2,2)  = c1;
+	B(2,5)  = c2;
+	B(2,8)  = c3;
+	B(2,11) = c4;
+
+	B(3,0)  = b1;
+	B(3,1)  = a1;
+	B(3,3)  = b2;
+	B(3,4)  = a2;
+	B(3,6)  = b3;
+	B(3,7)  = a3;
+	B(3,9)  = b4;
+	B(3,10) = a4;
+
+	B(4,1)  = c1;
+	B(4,2)  = b1;
+	B(4,4)  = c2;
+	B(4,5)  = b2;
+	B(4,7)  = c3;
+	B(4,8)  = b3;
+	B(4,10) = c4;
+	B(4,11) = b4;
+
+	B(5,0)  = c1;
+	B(5,2)  = a1;
+	B(5,3)  = c2;
+	B(5,5)  = a2;
+	B(5,6)  = c3;
+	B(5,8)  = a3;
+	B(5,9)  = c4;
+	B(5,11) = a4;
+
+	B *= 1.0/(detJ);
+	
+	return B;
+};
+dmatrix<double> C3D4::De()
+{
+	dmatrix<double> D(6,6);
+
+	D(0,0) = D(1,1) = D(2,2) = 1.0-material.nu;
+	D(3,3) = D(4,4) = D(5,5) = 0.5-material.nu;
+	D(0,1) = D(0,2) = material.nu;
+	D(1,0) = D(1,2) = material.nu;
+	D(2,0) = D(2,1) = material.nu;
+
+	D *= material.E/((1.0+material.nu)*(1.0-2.0*material.nu));
+
+	return D;
+};
+dmatrix<double> C3D4::Ke()
+{
+	dmatrix<double> b = Be();
+	dmatrix<double> k = b.t()*De()*b;
+	k *= V;
+
+	return k;
+};
+void C3D4::calc_detJ()
+{
+	dmatrix<double> J(4,4);
+	for(int n=0; n<4; n++)
+	{
+		J(0,n) = 1;
+		for(int i=0; i<3; i++)
+		{
+			J(i+1,n) = nodes[n]->coord[i];
+		}
+	}
+
+	detJ = J.det();
+}
+void C3D4::calc_V()
+{
+	V = 1.0/6.0*detJ;
+};
+//Utility functions used to compactly access the nodal x or y or z
+__inline double C3D4::x(const int n)
+{
+	return nodes[n]->coord[0];
+};
+__inline double C3D4::y(const int n)
+{
+	return nodes[n]->coord[1];
+};
+__inline double C3D4::z(const int n)
+{
+	return nodes[n]->coord[2];
+};
+
+void C3D4::calc(dmatrix<double> &Kele, std::vector<double>& node_mass)
+{
+	calc_detJ();
+	calc_V();
+	Kele = Ke();
+
+	node_mass.clear();
+	node_mass.resize(4, material.rho*V/4.0);
+};
+std::vector<int> C3D4::ldof2gdof()
+{
+	std::vector<int> dofmap;
+	for(int n=0; n<4; ++n)
+	{
+		for(int dof=0; dof<nodes[n]->DOF.size(); ++dof)
+		{
+			dofmap.push_back(nodes[n]->DOF[dof]);
+		}
+	}
+
+	return dofmap;
+}
+std::vector<face> C3D4::getfaces()
+{
+	std::vector<face> fs;
+	
+	//the four faces
+	{
+		face f;
+		f.push_back(nodes[0]);
+		f.push_back(nodes[1]);
+		f.push_back(nodes[2]);
+		fs.push_back(f);
+	}
+
+	{
+		face f;
+		f.push_back(nodes[0]);
+		f.push_back(nodes[3]);
+		f.push_back(nodes[1]);
+		fs.push_back(f);
+	}
+
+	{
+		face f;
+		f.push_back(nodes[1]);
+		f.push_back(nodes[3]);
+		f.push_back(nodes[2]);
+		fs.push_back(f);
+	}
+
+	{
+		face f;
+		f.push_back(nodes[2]);
+		f.push_back(nodes[3]);
+		f.push_back(nodes[0]);
+		fs.push_back(f);
+	}
+
+	return fs;
+}
+
+
+================================================================================
+File: E:/Job_1/SHS--Original/localCopy/influgen_2/src\element_C3D4.h
+================================================================================
+
+#pragma once
+#include <vector>
+
+#include "dmatrix.h"
+#include "node.h"
+#include "material.h"
+#include "face.h"
+
+class C3D4
+{
+private:
+	std::vector<const node*> nodes;
+	material_type material;
+
+	dmatrix<double> Be();
+	dmatrix<double> De();
+	dmatrix<double> Ke();
+	void calc_detJ();
+	void calc_V();
+	double x(const int n);
+	double y(const int n);
+	double z(const int n);
+
+	double V;
+	double detJ;
+
+public:
+	C3D4(const std::vector<const node*> &Nodes, material_type mat);
+	void calc(dmatrix<double> &Kele, std::vector<double>& node_mass);
+	std::vector<int> C3D4::ldof2gdof();
+	std::vector<face> getfaces();
+};
+
+
+
+================================================================================
+File: E:/Job_1/SHS--Original/localCopy/influgen_2/src\face.cpp
+================================================================================
+
+#include "face.h"
+#include <algorithm>
+
+using namespace std;
+
+double face::triarea(const int n1, const int n2, const int n3) const
+{
+	//Pythagorean sum of the areas of the respective projections on the three principal planes
+	double area2 = 0;
+	dmatrix<double> m (3,3);
+	m(2,0) = 1; m(2,1) = 1; m(2,2) = 1;
+
+	for(int j=0; j<3; j++)
+	{
+		m(0,0) = nodes[n1]->coord[j%3];
+		m(0,1) = nodes[n2]->coord[j%3];
+		m(0,2) = nodes[n3]->coord[j%3];
+		m(1,0) = nodes[n1]->coord[(j+1)%3];
+		m(1,1) = nodes[n2]->coord[(j+1)%3];
+		m(1,2) = nodes[n3]->coord[(j+1)%3];
+			
+		area2 += pow(m.det(),2);
+	}
+	return 0.5*pow(area2,0.5);
+};
+
+void face::push_back(const node * n)
+{
+	nodes.push_back(n);
+};
+
+bool face::operator<(const face & f) const
+{
+	//first check node sizes
+	if(nodes.size() < f.nodes.size())
+	{
+		return true;
+	} else if (nodes.size() > f.nodes.size())
+	{
+		return false;
+	}
+
+	//we are going to do the rest of this comparison based on the pointer address of node *
+
+	const int nn = int(nodes.size());
+
+	//build a sortable vector
+	vector<const node *> ns(nodes);
+	vector<const node *> fns(f.nodes);
+
+	//sort the nodal ids
+	sort(ns.begin(), ns.end());
+	sort(fns.begin(), fns.end());
+
+	//now compare
+	for(int n=0; n<nn; n++)
+	{
+		if(ns[n] < fns[n])
+		{
+			return true;
+		} else if (ns[n] > fns[n])
+		{
+			return false;
+		}
+	}
+
+	//must be equal, so not <
+	return false;
+};
+
+double face::area() const
+{
+	//This should work for triangles and quads
+	if(nodes.size() == 3)
+	{
+		return triarea(0,1,2);				
+	} else if (nodes.size() == 4)
+	{
+		return triarea(0,1,2)+triarea(2,3,0);
+	}
+
+	return 0;
+};
+
+point face::normal() const
+{
+	//Returns a unit vector normal to the face
+	if(nodes.size() == 3)
+	{
+		const point v1 = nodes[1]->coord - nodes[0]->coord;
+		const point v2 = nodes[2]->coord - nodes[0]->coord;
+		point c = point::cross(v1,v2);
+		c *= 1.0/c.norm();
+		return c;
+	} else if (nodes.size() == 4)
+	{
+		//Size a quad can be skew, I am just going to take three of the four nodes.
+		const point v1 = nodes[1]->coord - nodes[0]->coord;
+		const point v2 = nodes[3]->coord - nodes[0]->coord;
+		point c = point::cross(v1,v2);
+		c *= 1.0/c.norm();
+		return c;
+	}
+
+	return point();
+};
+
+point face::centroid() const
+{
+	point c(0,0,0);
+
+	//Return a 'centroid' point
+	for(int n=0; n<nodes.size(); n++)
+	{
+		c = c+nodes[n]->coord;
+	}
+
+	c *= (1.0/double(nodes.size()));
+
+	return c;
+}
+
+
+
+================================================================================
+File: E:/Job_1/SHS--Original/localCopy/influgen_2/src\face.h
+================================================================================
+
+#pragma once
+#include <vector>
+
+#include "dmatrix.h"
+#include "node.h"
+
+//Face definition
+class face
+{
+	double triarea(const int n1, const int n2, const int n3) const;
+
+	public:
+		std::vector<const node *> nodes;
+		
+		void push_back(const node * n);
+		bool operator<(const face & f) const;
+		double area() const;
+		point normal() const;
+		point centroid() const;
+};
+
+
+================================================================================
+File: E:/Job_1/SHS--Original/localCopy/influgen_2/src\fem.h
+================================================================================
+
+#pragma once
+#include <vector>
+#include <map>
+#include <set>
+#include <string>
+#include "mkl.h"
+#include <gmm/gmm.h>
+
+#include "femoptions.h"
+#include "node.h"
+#include "element.h"
+#include "elementset.h"
+#include "nodeset.h"
+#include "face.h"
+
+class fem
+{
+public:
+	typedef std::map<size_t, point> loadmap_t;
+
+	enum im_direction_t
+	{
+		NORMAL,
+		ANTI_NORMAL
+	};
+
+public:
+	std::vector<node> nodes;
+	size_t nodecnt;
+	
+	int udof;	//number of unconstrainted DOF
+
+	std::vector<element> elements;
+	size_t elementcnt;
+
+	std::map<std::string, nodeset> nodesets;
+	std::map<std::string, elementset> elementsets;
+
+	//stiffness matrix
+	//need to use row matrix type to aid in INTEL CSR conversion
+	//This is the matrix in which the stiffness matrix is built
+	gmm::row_matrix<gmm::wsvector<double> > K_gmm;
+	
+	//This a the compressed storage [column] format used by the gmm solvers
+	gmm::csc_matrix<double>	K_gmm_csc;
+
+	//node mass matrix (lumped form, so a diagonal vector)
+	std::vector<double> nodes_mass;
+
+	//
+	std::map<face, size_t> externalelementfaces;
+
+	//the gap set
+	nodeset* gap_nodeset;
+
+	//faces that makeup the gap set, used for searching
+	std::set<const face*> gap_face_set;
+
+	//faces that makeup the gap set, used to sequential loading
+	std::vector<const face*> gap_face_vector;
+
+	//gap node normals
+	std::vector<point> gap_node_norms;
+
+	//used for IR
+	struct
+	{
+		double body_mass;
+		point cog;
+		double scale;
+	} IR;
+
+	//which way is defined as 'positive' for the im's
+	im_direction_t im_direction;
+
+	//Intel MKL
+	struct mkl_t
+	{
+		void* pt[64];
+		_INTEGER_t maxfct;
+		_INTEGER_t mnum;
+		_INTEGER_t mtype;
+		_INTEGER_t phase;
+	
+		_INTEGER_t iparm [64];
+		_INTEGER_t msglvl;
+		_INTEGER_t error;
+
+		_INTEGER_t n;
+		
+		double * K_csr;
+		_INTEGER_t * ia;
+		_INTEGER_t * ja;
+
+		_INTEGER_t * perm;	//not used
+
+		mkl_t()
+		{
+			K_csr = NULL;
+			ia = NULL;
+			ja = NULL;
+		}
+
+		~mkl_t()
+		{
+			if(K_csr != NULL)
+			{
+				delete [] K_csr;
+				K_csr = NULL;
+			}
+			if(ia != NULL)
+			{
+				delete [] ia;
+				ia = NULL;
+			}
+			if(ja != NULL)
+			{
+				delete [] ja;
+				ja = NULL;
+			}
+		}
+		
+	} mkl;
+
+	//helper methods
+	std::vector<const node*> nid2node(const std::vector<size_t> &nids);
+	static std::vector<double> inverse_3x3(const std::vector<double> A);
+
+public:
+	//fem options
+	femoptions options;
+	
+	//Member methods - IO
+	void readoptions(std::string file);
+	void loadinp();
+	void writeVTK(std::string filename, const std::vector<double>& b, const std::vector<double>& x);
+	void writeFacesetVTK(const std::string filename, const std::vector<const face*>& fs);
+	void getim(const std::vector<double>::iterator x, std::vector<double>& im);
+
+	//Member methods - loading
+	void setupgap(std::string gap_set_name, im_direction_t direction);
+	void nodeset2faceset(const nodeset& ns, std::vector<const face*>& fs);
+	void load_gap_face(size_t faceid, double pressure, loadmap_t& loadmap);
+	void load_set(std::string setname, double pressure, loadmap_t& loadmap);
+
+	void loadmap2b(const loadmap_t& loadmap, std::vector<double>::iterator b);
+	void loadmap2b(const loadmap_t& loadmap, std::vector<double> &b);
+	
+	//Member methods - helping
+	void number_DOF();
+	void stiffness_matrix(const bool only_triu = false);
+	size_t get_gap_facecnt();
+	size_t get_gap_nodecnt();
+	int get_udof();
+
+	//Solving - gmm
+	void gmm_setup();
+	bool gmm_solve(const loadmap_t& loadmap, std::vector<double>& b, std::vector<double>& x);
+
+	//Solving - MKL
+	void K_gmm2K_csr(bool only_triu = true);
+	void mkl_phase0();
+	void mkl_phase11();
+	void mkl_phase22();
+	void mkl_phase33(_INTEGER_t nrhs, double* b, double * x);
+	void mkl_gap_ims(int startid, _INTEGER_t nrhs, std::vector<double>& b, std::vector<double> &x);
+	void mkl_solve(const loadmap_t& loadmap, std::vector<double>& b, std::vector<double>& x);
+
+};
+
+
+================================================================================
+File: E:/Job_1/SHS--Original/localCopy/influgen_2/src\femoptions.h
+================================================================================
+
+#pragma once
+#include <string>
+#include <vector>
+#include <map> 
+
+#include "material.h"
+
+struct femoptions
+{
+	struct elastic_constraint
+	{
+		int x;
+		int y;
+		int z;
+	};
+
+	//general options
+	std::string pump_name;
+	std::string meshfile;
+	double scalefactor;
+	
+	//Activate Inertial Relief 
+	int inrel;
+
+	//specify the RAM ammount for Pardiso solver
+	int max_ram;
+	
+	//The list of materials / elastic constraints
+	std::vector<material_type> materials;
+	std::map<std::string, size_t> elementset_material;
+	std::map<std::string, elastic_constraint> elastic_constraints;
+
+	//constructor
+	femoptions()
+	{
+		//default maxRAM to 2000 MB
+		max_ram = 2000;
+
+		//default inertia relief to 0
+		inrel = 0;
+
+		//default scale factor to 1e-3
+		scalefactor = 1e-3;
+
+		//ensure the lists are clear
+		materials.clear();
+		elastic_constraints.clear();
+	}
+
+	//Clear method
+	void clear()
+	{
+		femoptions();
+	}
+};
+
+
+
+================================================================================
+File: E:/Job_1/SHS--Original/localCopy/influgen_2/src\fem_io.cpp
+================================================================================
+
+#include "fem.h"
+#include "string_functions.h"
+
+#include <map>
+#include <iostream>
+#include <fstream>
+#include <sstream>
+
+using namespace std;
+using namespace string_functions;
+
+
+void fem::readoptions(string file)
+{
+	//used in this type of option file reader
+	struct section
+	{
+		string name;
+		vector<istringstream*> fields;
+	};
+
+
+	ifstream in(file.c_str());
+	if (!in.is_open()) 	
+	{
+		cout << "input::read(): Unable to open " << file << " input file!" << endl;
+		exit(1);
+	}
+
+	string tmp;
+	string line;
+	double val = 0;
+	vector<section*> sections;
+
+	//read the file
+	while(getline(in,line)) 
+	{
+		if(line.size() > 0)
+		{
+			istringstream iss (line,istringstream::in);
+			iss >> tmp;
+			size_t comment  = tmp.find("//"); // check if there is a comment
+			// if is not a comment read
+			if (comment == string::npos) 
+			{
+				// new section
+				if(tmp.compare("section") == 0)
+				{
+					section* s = new section;
+					sections.push_back(s);
+					iss >> tmp;	
+					if(tmp.compare("section") != 0)
+					{
+						s -> name = tmp;
+						
+						while(tmp.compare("endsection") != 0)
+						{
+							getline(in,line);
+							if(line.size() > 0)
+							{
+								tmp.resize(0);
+								istringstream iss(line,istringstream::in);
+								iss >> tmp;
+								if(tmp.size() > 0)
+								{
+									s -> fields.push_back(new istringstream (line,istringstream::in));
+								}
+							}
+						}
+					}
+					else
+					{
+						cout << "Missing section name!" << endl;
+						exit(1);
+					}
+				}
+			}
+		}
+	}
+
+	//process the sections
+	string fieldname;
+	string fieldvalue;
+
+	bool read_general = false;
+	bool read_FEM_solver = false;
+
+	for(unsigned int i=0; i<sections.size(); i++)
+	{
+		// read section general
+		if((sections[i] -> name).compare("general") == 0)
+		{
+			read_general = true;
+			int validfields = 0;
+			for(unsigned int j=0; j<sections[i] -> fields.size(); j++)
+			{
+				*(sections[i] -> fields[j]) >> fieldname;
+				if(fieldname.compare("pump") == 0)
+					*(sections[i] -> fields[j]) >> options.pump_name, validfields++;
+				if(fieldname.compare("meshFile") == 0)
+					*(sections[i] -> fields[j]) >> options.meshfile, validfields++;
+				if(fieldname.compare("inrel") == 0)
+					*(sections[i] -> fields[j]) >> options.inrel, validfields++;
+				if(fieldname.compare("ram") == 0)
+					*(sections[i] -> fields[j]) >> options.max_ram, validfields++;
+				if(fieldname.compare("dimension") == 0)
+				{
+					string unit;
+					*(sections[i] -> fields[j]) >> unit;
+					if(unit.compare("m") == 0)
+						options.scalefactor = 1.0,  validfields++;
+					else if(unit.compare("mm") == 0)
+						options.scalefactor = 1.0e-3,  validfields++;
+					else
+					{
+						cout << "In file " << file 
+								 << " wrong dimension specified: "
+								 << unit << ". Please use either m or mm." << endl;
+						exit(1);
+					}
+				}
+			}
+		}
+		
+		// read new material
+		if((sections[i] -> name).compare("material") == 0)
+		{
+		
+			material_type mat;
+
+			int validfields = 0;
+			for(unsigned int j=0; j<sections[i] -> fields.size(); j++)
+			{
+				*(sections[i] -> fields[j]) >> fieldname;
+				if(fieldname.compare("name") == 0)
+					*(sections[i] -> fields[j]) >> mat.name, validfields++;
+				else if(fieldname.compare("E") == 0)
+					*(sections[i] -> fields[j]) >> mat.E, validfields++;
+				else if(fieldname.compare("nu") == 0)
+					*(sections[i] -> fields[j]) >> mat.nu, validfields++;
+				else if(fieldname.compare("rho") == 0)
+					*(sections[i] -> fields[j]) >> mat.rho, validfields++;
+				else if(fieldname.compare("sets") == 0)
+				{
+					validfields++;
+					int nsets;
+					*(sections[i] -> fields[j]) >> nsets;
+					for(int h = 0; h < nsets; h++)
+					{
+						string thisset;
+						*(sections[i] -> fields[j]) >> thisset;
+						//force the set name to lower case
+						thisset = str2lower(thisset);
+						
+						if(options.elementset_material.count(thisset) > 0)
+						{
+							cout << "Element set (" << thisset << ") has multiple materials assigned to it!" << endl;
+							exit(1);
+						}
+						options.elementset_material[thisset] = options.materials.size();
+					}
+				}
+				else if(fieldname.compare("//") != 0 && fieldname.compare("endsection") != 0)
+				{
+					cout << "Wrong keyword (" << fieldname << ") in material " 
+						 << sections[i] -> name << " definition!" << endl;
+					exit(1);
+				}
+			}
+			if(validfields != 5)
+			{
+				cout << "Missing some field in material " << fieldname 
+						 << " definition!" << endl;
+				cout << validfields << endl;
+				exit(1);
+			}
+
+			options.materials.push_back(mat);
+		}
+
+		// read new constraint
+		if((sections[i] -> name).compare("constraint") == 0)
+		{
+			femoptions::elastic_constraint constraint;
+			std::string setname = "";
+
+			int validfields = 0;
+			for(unsigned int j=0; j<sections[i] -> fields.size(); j++)
+			{
+				*(sections[i] -> fields[j]) >> fieldname;
+				if(fieldname.compare("set") == 0)
+				{	
+					*(sections[i] -> fields[j]) >> setname, validfields++;
+					//force the set name to lower case
+					setname = str2lower(setname);
+				}
+				else if(fieldname.compare("x") == 0)
+				{
+					*(sections[i] -> fields[j]) >> constraint.x, validfields++;
+				}
+				else if(fieldname.compare("y") == 0)
+				{
+					*(sections[i] -> fields[j]) >> constraint.y, validfields++;
+				}
+				else if(fieldname.compare("z") == 0)
+				{
+					*(sections[i] -> fields[j]) >> constraint.z, validfields++;
+				}
+				else if(fieldname.compare("//") != 0 && fieldname.compare("endsection") != 0)
+				{
+					cout << "Wrong keyword (" << fieldname << ") in " 
+						 << sections[i] -> name << " definition!" << endl;
+					exit(1);
+				}
+			}
+			
+			if(setname.length() > 0)
+			{
+				//normal constraint
+				if(options.elastic_constraints.count(setname) > 0)
+				{
+					cout << "ERROR: Constraint set ( " << setname << " ) is defined multiple times!" << endl;
+					exit(1);
+				}
+				options.elastic_constraints[setname] = constraint;
+			} 
+			
+			//either empty section or inertia relief so do nothing further
+
+		}
+
+	}	//done processing the sections
+
+	//check for mandatory sections
+
+	if(read_general == false)
+	{
+		cout << endl << "In input file " << file
+				 << " the general section ismissing!" << endl;
+		exit(1);
+	}
+
+};
+
+void fem::loadinp()
+{
+	const string inpfile = options.meshfile;
+	const double scale = options.scalefactor;
+
+	nodecnt = 0;
+	elementcnt = 0;
+
+	ifstream inp(inpfile.c_str());
+	if(!inp.is_open())
+	{
+		cout << "Error! Unable to open: " << inpfile << endl;
+		exit(1);
+	}
+
+	//node id map used to reorder the nodes consecutively
+	map<int, size_t> node_renumber;
+
+	while(!inp.eof())
+	{
+		string l;
+		getline(inp, l);;
+
+		if(l.find("*NODE") == 0)
+		{
+			cout << "\tReading nodes... ";
+			while(true)
+			{
+				streamoff pos = inp.tellg();
+				getline(inp, l);
+				if(l.find("*") != string::npos)
+				{
+					inp.seekg(pos);
+					break;	//finished with the node section
+				}
+				vector<string> line = Tokenize(l, ",");
+				nodes.push_back(node(scale*s2d(line[1]), scale*s2d(line[2]), scale*s2d(line[3])));
+				nodes[nodes.size()-1].nid = nodes.size()-1;
+				node_renumber[s2i(line[0])] = nodecnt;
+				nodecnt++;
+			}
+
+			cout << "read " << nodes.size() << " nodes." << endl;
+
+			//restart the main file loop
+			continue;
+		}
+
+		/*
+		if(l.find("*ELEMENT,TYPE=S3,ELSET=") == 0)
+		{
+			//get the face set name
+			string name = l.substr(23);
+			cout << "\tReading face set \"" << name << "\" ... ";
+
+			while(true)
+			{
+				streamoff pos = inp.tellg();
+				getline(inp, l);
+				if(l.find("*") != string::npos)
+				{
+					inp.seekg(pos);
+					break;	//finished with the node section
+				}
+				vector<string> line = Tokenize(l, ",");
+				
+				face Face;
+				for(unsigned int i=1; i<line.size(); i++)
+				{
+					int nid = s2i(line[i])-1;
+					if(nid < 0 || nid >= nodecnt)
+					{
+						cout << "Error! Problem with nid = " << nid << " of face = " << line[0] << " in faceset = " << name << endl;
+						exit(1);
+					}
+					Face.push_back(&nodes[nid]);
+				}
+
+				facesets[name].push_back(Face);
+			}
+			cout << "read " << facesets[name].size() << " faces." << endl;
+			
+			//restart the main file loop
+			continue;
+		}
+		*/
+
+		if(l.find("*ELEMENT,TYPE=C3D4,ELSET=") == 0)
+		{
+			//get the element set name
+			string name = l.substr(25);
+			//force the setname to lower
+			name = str2lower(name);
+			cout << "\tReading element set \"" << name << "\" ... ";
+			
+			int set_elecnt = 0;
+
+			while(true)
+			{
+				streamoff pos = inp.tellg();
+				getline(inp, l);
+				if(l.find("*") != string::npos)
+				{
+					inp.seekg(pos);
+					break;	//finished with the node section
+				}
+				vector<string> line = Tokenize(l, ",");
+				if(line.size() != 5)
+				{
+					cout << "Error! Problem with element = " << line[0] << " in element set = " << name << endl;
+					exit(1);
+				}
+				
+				
+				element e;
+				e.type = element::C3D4;
+
+				for(int i=1; i<5; i++)
+				{
+					auto n = node_renumber.find(s2i(line[i]));
+					if(n == node_renumber.end())
+					{
+						cout << "Error! Problem with node id = " << line[i] << " in element = " << line[0] << " of element set = " << name << endl;
+						exit(1);
+					}
+					e.nodes.push_back(n->second);
+				}
+
+				elements.push_back(e);
+				elementsets[name].push_back(elementcnt);
+				
+				elementcnt++;
+				set_elecnt++;
+			}
+
+			cout << "read " << set_elecnt << " elements." << endl;
+
+			//restart the main file loop
+			continue;
+		}
+		
+		if(l.find("*NSET, NSET=") == 0)
+		{
+			//get the face set name
+			string name = l.substr(12);
+			//force the node set to lower
+			name = str2lower(name);
+			cout << "\tReading node set \"" << name << "\" ... ";
+
+			while(true)
+			{
+				streamoff pos = inp.tellg();
+				getline(inp, l);
+				if(l.find("*") != string::npos)
+				{
+					inp.seekg(pos);
+					break;	//finished with the node section
+				}
+				vector<string> line = Tokenize(l, ",");
+				
+				for(unsigned int i=0; i<line.size(); i++)
+				{
+					auto n = node_renumber.find(s2i(line[i]));
+					if(n == node_renumber.end())
+					{
+						cout << "Error! Problem with node id = " << line[i] << " in node set = " << name << endl;
+						exit(1);
+					}
+					nodesets[name].push_back(n->second);
+				}
+
+			}
+			cout << "read " << nodesets[name].size() << " nodes." << endl;
+			
+
+			//restart the main file loop
+			continue;
+		}
+		
+
+	}
+
+	inp.close();
+
+	/*
+	cout << "\tBuilding element faces ... ";
+	
+	//update the elementfaces 
+	for(int e=0; e<elecnt; e++)
+	{
+		vector<face> fs = elements[e]->getfaces();
+		for(int f=0; f<fs.size(); f++)
+		{
+			elementfaces[fs[f]].push_back(e);
+		}
+	}
+
+	//create the EXTERNAL faces in the mesh map
+	for(map<face, vector<int> >::iterator f = elementfaces.begin(); f != elementfaces.end(); f++)
+	{
+		if(f->second.size() == 1)
+		{
+			externalelementfaces[f->first] = f->second;
+		}
+	}
+
+	cout << "found " << externalelementfaces.size() << " external and " << elementfaces.size() << " total faces." << endl;
+
+	//Build facesets from each node set
+	for(map<string, nodeset>::iterator it=nodesets.begin(); it != nodesets.end(); it++)
+	{
+		//it->first - set name
+		//it->second - the node set
+		
+		string name = it->first;
+
+		//check so we don't clobber an existing faceset
+		if(facesets.count(name) != 0)
+		{
+			error("face set = " + name + " is named the same as an existing nodeset and must be renamed!");
+		}
+		
+		//create a c++ set that will allow for a fast lookup
+		set<int> ns;
+		for(int n=0; n<it->second.size(); n++)
+		{
+			ns.insert(it->second[n]);
+		}
+
+		//now we need to loop through all of the externalelementfaces and test for each face if
+		//all the nodes are present in ns
+		for(auto f=externalelementfaces.begin(); f != externalelementfaces.end(); f++)
+		{
+			bool faceINnset = true;	//assume all the nodes are present
+
+			for(int n=0; n<f->first.nodes.size(); n++)
+			{
+				if(ns.count(f->first.nodes[n]->id) == 0)
+				{
+					faceINnset = false;	//this node isn't present so set to false
+					break;	//break the inner for loop
+				}
+			}
+
+			if(faceINnset)
+			{
+				//add the face to the faceset
+				facesets[name].push_back(f->first);
+			}
+		}
+
+		cout << "\tCreated face set \"" << name << "\" from the node set with " << facesets[name].size() << " faces." << endl;
+	}
+
+	//we can now clear the memory heavy set of all element faces
+	elementfaces.clear();
+
+	//Create a nodeset gap from the faceset if it doesn't exist
+	if(nodesets.count("gap") == 0)
+	{
+		set<int> nodes;
+
+		for(size_t f=0; f<facesets["gap"].size(); f++)
+		{
+			for(size_t n=0; n<facesets["gap"][f].nodes.size(); n++)
+			{
+				nodes.insert(facesets["gap"][f].nodes[n]->id);
+			}
+		}
+		
+		nodeset gapnodes;
+
+		for(set<int>::iterator i=nodes.begin(); i != nodes.end(); i++)
+		{
+			gapnodes.push_back(*i);
+		}
+				
+		nodesets["gap"] = gapnodes;
+
+		cout << "\tCreated node set \"gap\" from the face set with " << gapnodes.size() << " nodes." << endl;
+	}
+
+	//the final step is to remove any newly created facesets that might 'clobber' faces in the gap faceset
+
+	//first just check that gap exists
+	if(!checkFaceset("gap"))
+	{
+		error("a node or face set named gap MUST exist!");
+	}
+
+	//let's create a c++ set for the gap faceset for quick lookup
+	set<face> gapfaceset;
+	for(int f=0; f<facesets["gap"].size(); f++)
+	{
+		gapfaceset.insert(facesets["gap"][f]);
+	}
+
+	//now loop through all NODE created facesets (except "gap") and remove any duplicate faces
+	//if a faceset is actually defined in the input, we will not correct it
+	for(map<string, nodeset>::iterator it=nodesets.begin(); it != nodesets.end(); it++)
+	{
+		string name = it->first;
+
+		//obviously we need to skip the gap faceset
+		if(name.compare("gap") == 0)
+		{
+			continue;
+		}
+		
+		//let's just keep a count of how many faces we delete for logging purposes
+		int del = 0;
+
+		for(int f = 0; f<facesets[name].size(); f++)
+		{
+			if(gapfaceset.count(facesets[name][f]) > 0)
+			{
+				facesets[name].erase(facesets[name].begin() + f);
+				f--;	//becuase we removed the current element, update the counter
+				del++;
+			}
+		}
+
+		if(del > 0)
+		{
+			cout << "\tRemoving " << del << " face(s) from the " << name << " face set because they duplicate the gap face set." << endl;
+		}
+	}
+	*/
+
+	//assign materials to element sets
+	for(auto eset = elementsets.begin(); eset!=elementsets.end(); ++eset)
+	{
+		auto m = options.elementset_material.find(eset->first);
+		if(m == options.elementset_material.end())
+		{
+			cout << "ERROR: Element set ( " << eset->first << " ) doesn't have a material assigned to it!" << endl;
+			exit(1);
+		}
+		eset->second.material = options.materials[m->second];
+	}
+
+	//assign constraints to node sets
+	for(auto constraint = options.elastic_constraints.begin(); constraint!=options.elastic_constraints.end(); ++constraint)
+	{
+		auto nset = nodesets.find(constraint->first);
+		if(nset == nodesets.end())
+		{
+			cout << "ERROR: Constraint node set ( " << constraint->first << " ) is not defined in the mesh!" << endl;
+			exit(1);
+		}
+		if(constraint->second.x != 0)
+		{
+			nset->second.const_x = true;
+		}
+		if(constraint->second.y != 0)
+		{
+			nset->second.const_y = true;
+		}
+		if(constraint->second.z != 0)
+		{
+			nset->second.const_z = true;
+		}
+	}
+};
+void fem::writeVTK(std::string filename, const std::vector<double>& b, const std::vector<double>& x)
+{
+	//this could be made flexible for more element types
+	# define VTK_VOL_ELM_TYPE 10
+	# define VTK_SURF_ELM_TYPE 5
+
+	cout << "Writing VTK output ... ";
+
+	ofstream vtk(filename.c_str());
+	if (!vtk.is_open()) 
+	{
+		cout << "Error opening " << filename << endl;
+		exit(1);
+	}
+
+	// write VTK header
+	vtk << 
+		"# vtk DataFile Version 2.0" << endl <<
+		"vtk output" << endl <<
+		"ASCII" << endl <<
+		"DATASET UNSTRUCTURED_GRID" << endl << 
+		"POINTS " << nodecnt << " double" << endl;
+	
+	// ----------------------------- mesh nodes -------------------------------//
+	
+	for(unsigned int i = 0; i < nodes.size(); i++) 
+	{
+		vtk << nodes[i][0] << "\t" 
+				<< nodes[i][1] << "\t" 
+				<< nodes[i][2] << endl; 
+	}
+
+	vtk << endl;
+
+	// ------------------------ elements definition -------------------------- //
+	
+	//NOTE I HAVE FORCED ELEMENTE NODE CNT = 4 for now. -> need to be more general!
+	const int elenodecnt = 4;
+	vtk << "CELLS " << elementcnt << "\t" 
+		<< (1 + elenodecnt)*elementcnt << endl;
+
+	for(int i = 0; i < elementcnt; i++) {
+		vtk << elenodecnt << "\t";
+		for(unsigned int j = 0; j < elements[i].nodes.size(); j++)
+			vtk << nodes[elements[i].nodes[j]].nid << "\t"; // index start from 0
+		vtk << endl;
+	}
+	
+	vtk << endl;
+
+	// --------------------------- elements type ----------------------------- //
+
+	vtk << "CELL_TYPES " << elementcnt << endl;
+			
+	for (int i = 0; i < elementcnt; i++) 
+	{
+		vtk << VTK_VOL_ELM_TYPE << endl;
+	}
+
+
+	vtk << "\nPOINT_DATA " << nodecnt << endl;
+
+	vtk << "\nVECTORS displacement float" << endl;			
+	for(int i=0; i<nodecnt; i++)
+	{
+		for(int j=0; j<3; j++)
+		{
+			const int Gdof = nodes[i].DOF[j];
+			if(Gdof >= 0)
+			{
+				vtk << x[Gdof] << "\t";
+			} else {
+				//for now only 0 displacement BC's are supported
+				vtk << 0 << "\t";
+			}
+		}
+		vtk << endl;
+	}
+	
+	//Applied Loads
+	vtk << "\nVECTORS loads float" << endl;
+	for(int i=0; i<nodecnt; i++)
+	{
+		for(int j=0; j<3; j++)
+		{
+			const int Gdof = nodes[i].DOF[j];
+			if(Gdof >= 0)
+			{
+				vtk << b[Gdof] << "\t";
+			} else {
+				//constrained nodes can't be loaded
+				vtk << 0 << "\t";
+			}
+		}
+		vtk << endl;
+	}
+
+	vtk.close();
+	vtk.clear();
+
+	cout << "done." << endl;
+
+	/*
+
+	// --------------- write the boundary surfaces vtk files ----------------- //
+
+	for(int i = 0; i < mesh.nfs; i++)
+	{
+		std::ostringstream oss;
+		oss.str("");
+		oss << in.pump << "." << i << ".vtk";
+		vtk.open(oss.str().c_str());
+		
+		// determine the index of nodes to write
+		std::vector<int> nodesidx(0);
+		std::vector<std::vector<int>> newlabels(mesh.faceSets[i].size);
+		// loop through all the faces in the face set
+		for(int j = 0; j < mesh.faceSets[i].size; j++)
+		{
+			// loop to all the nodes in each faces
+			for(unsigned int h = 0; h < mesh.faceSets[i].nodes[j].size(); h++)
+			{
+				// search is the node has already been considered
+				std::vector<int>::iterator it;
+				it = find(nodesidx.begin(),nodesidx.end(),mesh.faceSets[i].nodes[j][h]);
+				// if not, add to the node list 
+				if(it == nodesidx.end())
+				{
+					nodesidx.push_back(mesh.faceSets[i].nodes[j][h]);
+					newlabels[j].push_back((int) nodesidx.size() - 1);
+				}
+				else
+				{
+					newlabels[j].push_back((int) (it - nodesidx.begin()));
+				}
+			}
+		}
+		
+		// write vtk file for this boundary surface (defined in faceSets[i])
+		vtk << 
+		"# vtk DataFile Version 2.0" << endl <<
+		"vtk output" << endl <<
+		"ASCII" << endl <<
+		"DATASET UNSTRUCTURED_GRID" << endl << 
+		"POINTS " << nodesidx.size() << " double" << endl;
+	
+		// write nodes
+		for(unsigned int j = 0; j < nodesidx.size(); j++)
+		{
+			vtk << mesh.nodes[nodesidx[j]].x() << "\t"
+				  << mesh.nodes[nodesidx[j]].y() << "\t"
+					<< mesh.nodes[nodesidx[j]].z() << endl;
+		}
+
+		// write faces
+		int nelements = mesh.faceSets[i].size;
+
+		vtk << "CELLS " << nelements << "\t" 
+				<< (1 + FACE_NDS)*nelements << endl;
+
+		for(int j = 0; j < nelements; j++) 
+		{
+			vtk << FACE_NDS << "\t";
+			for(unsigned int h = 0; h < newlabels[j].size(); h++)
+				vtk << newlabels[j][h] << "\t"; // index start from 0
+			vtk << endl;
+		}
+			
+		vtk << endl;
+
+		// write face elements definition
+		vtk << "CELL_TYPES " << nelements << endl;
+			
+		for (int j = 0; j < nelements; j++)
+			vtk << VTK_SURF_ELM_TYPE << endl;
+
+		vtk.close();
+	}
+
+	*/
+}
+void fem::writeFacesetVTK(const std::string filename, const std::vector<const face*>& fs)
+{
+	int vtkelecnt = (int) fs.size();
+
+	//we need to build a map of nodes in this faceset and assign a vtk node id
+	map<const node *, int> vtknodesmap;
+
+	//we also need a vector of the nodes in this faceset ordered according to the local vtk node id
+	vector<const node *> vtknodes;
+	
+	for(auto f=fs.begin(); f!=fs.end(); f++)
+	{
+		for(auto n=(*f)->nodes.begin(); n != (*f)->nodes.end(); n++)
+		{
+			if(vtknodesmap.count((*n)) == 0)
+			{
+				//we need to insert the node
+				vtknodesmap[*n] = (int) vtknodes.size();
+				vtknodes.push_back(*n);
+			}
+		}
+	}
+
+	int vtknodecnt = (int) vtknodes.size();
+
+	//now we can write the vtk file
+	ofstream vtk(filename.c_str());
+	if (!vtk.is_open()) 
+	{
+		cout << "Error opening " + filename + "!" << endl;
+		exit(1);
+	}
+
+	// write VTK header
+	vtk << 
+		"# vtk DataFile Version 2.0" << endl <<
+		"vtk output" << endl <<
+		"ASCII" << endl <<
+		"DATASET UNSTRUCTURED_GRID" << endl << 
+		"POINTS " << vtknodecnt << " double" << endl;
+	
+	// ----------------------------- mesh nodes -------------------------------//
+	
+	
+	for(unsigned int i = 0; i < vtknodes.size(); i++) 
+	{
+		vtk << vtknodes[i]->x() << "\t" 
+				<< vtknodes[i]->y() << "\t" 
+				<< vtknodes[i]->z() << endl; 
+	}
+	
+	vtk << endl;
+
+	// ------------------------ elements definition -------------------------- //
+	
+	//NOTE I HAVE FORCED ELEMENTE NODE CNT = 3 for now. -> need to be more general!
+	const int elenodecnt = 3;
+	vtk << "CELLS " << vtkelecnt << "\t" 
+		<< (1 + elenodecnt)*vtkelecnt << endl;
+
+	for(auto f=fs.begin(); f != fs.end(); f++)
+	{
+		vtk << elenodecnt << "\t";
+		for(auto n=(*f)->nodes.begin(); n != (*f)->nodes.end(); n++)
+		{
+			vtk << vtknodesmap[*n] << "\t";
+		}
+		vtk << endl;
+	}
+
+	vtk << endl;
+
+	// --------------------------- elements type ----------------------------- //
+
+	vtk << "CELL_TYPES " << vtkelecnt << endl;
+			
+	for (int i = 0; i < vtkelecnt; i++) 
+	{
+		vtk << VTK_SURF_ELM_TYPE << endl;
+	}
+
+	vtk.close();
+
+}
+void fem::getim(const std::vector<double>::iterator x, std::vector<double>& im)
+{
+	const size_t gap_nodecnt = gap_nodeset->size();
+
+	im.clear();
+	im.resize(gap_nodecnt, 0);
+
+	for(size_t i=0; i<gap_nodecnt; ++i)
+	{
+		point deformation(0,0,0); //node deformation
+		for(int j=0; j<3; ++j)
+		{
+			int gdof = nodes[(*gap_nodeset)[i]].DOF[j];
+			if(gdof < 0)
+			{
+				//this really shouldn't be possible, to constrain a dof of the gap, but oh well
+				//would normally need to grab the B.C. value if we didn't just assume 0 ebc
+				deformation[j] = 0;
+			} else {
+				deformation[j] = *(x+gdof);
+			}
+		}
+
+		//only get deformation normal to the gap direction
+		im[i] = deformation.dot(gap_node_norms[i]);
+		
+		//by convention the gap norms are actually the 'anti-normals'
+		//so reverse the magnitude in the case of a normal
+		if(im_direction == NORMAL)
+		{
+			im[i] *= -1;
+		}
+	}
+}
+
+
+================================================================================
+File: E:/Job_1/SHS--Original/localCopy/influgen_2/src\fem_load.cpp
+================================================================================
+
+#include "fem.h"
+#include "string_functions.h"
+#include <map>
+
+using namespace std;
+
+void fem::setupgap(std::string gap_set_name, im_direction_t direction)
+{
+	//set the gap set name
+	if(nodesets.count(gap_set_name) == 0)
+	{
+		cout << "ERROR: The node set named \"" << gap_set_name << "\" is required but not defined in the mesh!" << endl;
+		exit(1);
+	}
+	gap_nodeset = &nodesets[gap_set_name];
+
+	//set the im normal direction
+	im_direction = direction;
+	
+	//create the gap face set
+	nodeset2faceset(*gap_nodeset, gap_face_vector);
+	cout << "  Gap face set created with " << gap_face_vector.size() << " faces." << endl;
+
+	//make the gap_face_set for from the gap_face_vector to ensure other set loads don't also load the gap
+	for(auto f=gap_face_vector.begin(); f!=gap_face_vector.end(); ++f)
+	{
+		gap_face_set.insert(*f);
+	}
+	
+	//create the gap node norms (actually an average of attached face norms)
+	gap_node_norms.resize(gap_nodeset->size());
+	std::vector<double> gap_node_norms_cnt(gap_nodeset->size(), 0);
+
+	// build a map of nodes -> faces
+	std::map<const node *, std::vector<const face *> > gapnode2gapfaces;
+	for(auto f=gap_face_set.begin(); f!=gap_face_set.end(); ++f)
+	{
+		for(size_t n=0; n<(*f)->nodes.size(); ++n)
+		{
+			gapnode2gapfaces[(*f)->nodes[n]].push_back(*f);
+		}
+	}
+
+	//now loop over the gap_nodeset and calc the norm for the faces attached to each node
+	for(size_t n=0; n<gap_nodeset->size(); ++n)
+	{
+		const node* N = &nodes[(*gap_nodeset)[n]];
+		const std::vector<const face *>& Faces = gapnode2gapfaces[N];
+		//loop over the node faces
+		for(size_t f=0; f<Faces.size(); ++f)
+		{
+			gap_node_norms[n] = gap_node_norms[n]+Faces[f]->normal();
+			gap_node_norms_cnt[n] += 1;
+		}
+	}
+
+	//now do the division by gap_node_norms_cnt
+	for(size_t n=0; n<gap_nodeset->size(); ++n)
+	{
+		gap_node_norms[n] /= gap_node_norms_cnt[n];
+	}
+	
+}
+void fem::nodeset2faceset(const nodeset& ns, std::vector<const face*>& fs)
+{
+	//build a std::set of node* from the nodeset for quick searching
+	std::set<const node*> ns_set;
+
+	for(auto n=ns.begin(); n!=ns.end(); ++n)
+	{
+		ns_set.insert(&nodes[*n]);
+	}
+
+	//used below, but ensuring for optimization that this comparison is only done once
+	const bool is_gap_nodeset = ns == *gap_nodeset;
+
+	//now loop over all the faces
+	for(auto f=externalelementfaces.begin(); f!=externalelementfaces.end(); ++f)
+	{
+		bool set_face = true;
+		for(size_t n=0; n<f->first.nodes.size(); ++n)
+		{
+			if(ns_set.count(f->first.nodes[n]) == 0)	//the face node isn't in the nodeset
+			{
+				set_face = false;
+			}
+		}
+		if(set_face)
+		{
+			//don't insert a face if it is part of the gap face set
+			//unless this nodeset is the gap node set
+			if(gap_face_set.count(&(f->first)) == 0 || is_gap_nodeset)
+			{
+				fs.push_back(&(f->first));
+			}
+		}
+	}
+}
+void fem::load_gap_face(size_t faceid, double pressure, loadmap_t& loadmap)
+{
+	const face& f = *gap_face_vector[faceid];
+	double area = f.area();
+	point nodeload = f.normal();
+	nodeload *= pressure*area/double(f.nodes.size());
+	for(size_t n=0; n<f.nodes.size(); ++n)
+	{
+		loadmap[f.nodes[n]->nid] += nodeload;
+	}
+}
+void fem::load_set(std::string setname, double pressure, loadmap_t& loadmap)
+{
+	setname = string_functions::str2lower(setname);
+
+	if(nodesets.count(setname) != 1)
+	{
+		cout << "ERROR: Unable to load the set \"" << setname << "\" becuase it does not exist in the mesh!" << endl;
+		exit(1);
+	}
+	//first convert the nodeset to a faceset
+	std::vector<const face*> faceset;
+	nodeset2faceset(nodesets[setname], faceset);
+
+	//now loop over all the set faces
+	for(auto f_it=faceset.begin(); f_it!=faceset.end(); ++f_it)
+	{	
+		const face& f = **f_it;
+		double area = f.area();
+		point nodeload = f.normal();
+		nodeload *= pressure*area/double(f.nodes.size());
+		for(size_t n=0; n<f.nodes.size(); ++n)
+		{
+			loadmap[f.nodes[n]->nid] += nodeload;
+		}
+	}
+}
+std::vector<double> fem::inverse_3x3(const vector<double> A)
+{
+	vector<double> B(9, 0);
+
+	//det(A)
+	double det = A[0]*( A[4]*A[8]-A[7]*A[5] )
+                 - A[1]*( A[3]*A[8]-A[5]*A[6] )
+                 + A[2]*( A[3]*A[7]-A[4]*A[6] );
+	
+	//Inverse of A
+	double invdet = 1.0/det + 1.0e-12;
+	B[0] =  ( A[4]*A[8] - A[7]*A[5] ) * invdet;
+	B[3] = -( A[1]*A[8] - A[2]*A[7] ) * invdet;
+	B[6] =  ( A[1]*A[5] - A[2]*A[4] ) * invdet;
+	B[1] = -( A[3]*A[8] - A[5]*A[6] ) * invdet;
+	B[4] =  ( A[0]*A[8] - A[2]*A[6] ) * invdet;
+	B[7] = -( A[0]*A[5] - A[3]*A[2] ) * invdet;
+	B[2] =  ( A[3]*A[7] - A[6]*A[4] ) * invdet;
+	B[5] = -( A[0]*A[7] - A[6]*A[1] ) * invdet;
+	B[8] =  ( A[0]*A[4] - A[3]*A[1] ) * invdet;
+
+	return B;
+};
+void fem::loadmap2b(const loadmap_t& loadmap, std::vector<double> &b)
+{
+	//initialize the load vector
+	b.clear();
+	b.resize(udof, 0);
+
+	loadmap2b(loadmap, b.begin());
+}
+void fem::loadmap2b(const loadmap_t& loadmap, std::vector<double>::iterator b)
+{
+	//this assumes that the vector underlying the b iterator is AT LEAST b+udof long
+	
+	//set the loads from the map into a b vector
+	for(auto n=loadmap.begin(); n!=loadmap.end(); ++n)
+	{
+		for(int dof=0; dof<3; ++dof)
+		{
+			int gdof = nodes[n->first].DOF[dof];
+			if(gdof >= 0)	//node is unconstrained
+			{
+				*(b+gdof) += n->second.coord[dof];
+			}
+		}
+	}
+}
+size_t fem::get_gap_facecnt()
+{
+	return gap_face_vector.size();
+}
+int fem::get_udof()
+{
+	return udof;
+}
+size_t fem::get_gap_nodecnt()
+{
+	return gap_nodeset->size();
+}
+
+
+
+================================================================================
+File: E:/Job_1/SHS--Original/localCopy/influgen_2/src\fem_solve_gmm.cpp
+================================================================================
+
+#include "fem.h"
+
+void fem::gmm_setup()
+{
+	gmm::copy(K_gmm,K_gmm_csc);
+	K_gmm.clear_mat();
+}
+bool fem::gmm_solve(const loadmap_t& loadmap, std::vector<double>& b, std::vector<double>& x)
+{
+	//create the load vector
+	loadmap2b(loadmap, b);
+
+	//initialize the solution vector
+	x.clear();
+	x.resize(udof, 0);
+	
+	//Set solver params
+	gmm::iteration iter(1e-12);
+	iter.set_maxiter(2000);
+	iter.set_noisy(0);
+	
+	gmm::ildlt_precond< gmm::csc_matrix<double> > PR(K_gmm_csc);
+	//gmm::cg(K_gmm_csc, x, b, PR, iter);
+	gmm::bicgstab(K_gmm_csc, x, b, PR, iter);
+
+	if(iter.get_iteration() == iter.get_maxiter())
+	{
+		cout << "WARNING: Linear solver failed to converge in " << iter.get_maxiter() << " iterations!" << endl;
+	} else {
+		cout << "\tSolved linear system in " << iter.get_iteration() << " iterations." << endl;
+	}
+
+	if(options.inrel)
+	{
+		cout << "\tInertia Relief Trans. Acceleration = [ " << x[x.size()-3]*IR.scale << "\t"
+															<< x[x.size()-2]*IR.scale << "\t"
+															<< x[x.size()-1]*IR.scale << " ]" << endl;
+		cout << "\tInertia Relief Rot. Acceleration = [ " << x[x.size()-6]*IR.scale << "\t"
+															<< x[x.size()-5]*IR.scale << "\t"
+															<< x[x.size()-4]*IR.scale << " ]" << endl;
+	}
+
+	if(iter.get_iteration() == iter.get_maxiter())
+	{
+		return false;
+	}
+	return true;
+}
+
+
+
+================================================================================
+File: E:/Job_1/SHS--Original/localCopy/influgen_2/src\fem_solve_mkl.cpp
+================================================================================
+
+#include "fem.h"
+void fem::K_gmm2K_csr(bool only_triu)
+{
+	//this will load the K_gmm into the K_csr
+	//note that K_gmm will be cleared in the process
+
+	//first determint the nnz
+	int nnz = 0;
+	for(int i=0; i<udof; i++)
+	{
+		for(auto it = K_gmm[i].begin(); it != K_gmm[i].end(); ++it)
+		{
+			//only store the upper half if !only_triu
+			if(it->first >= i || !only_triu)
+			{
+				++nnz;
+			}
+		}
+	}
+	mkl.K_csr = new double [nnz];
+	mkl.ia = new _INTEGER_t [udof+1];
+	mkl.ja = new _INTEGER_t [nnz];
+
+	//fill the K_csr matrix
+	int ctr = 0;
+	for(int i=0; i<udof; i++)
+	{
+		mkl.ia[i] = ctr;
+		for(auto it = K_gmm[i].begin(); it != K_gmm[i].end(); ++it)
+		{
+			//only store the upper half if !only_triu
+			if(it->first >= i || !only_triu)
+			{
+				mkl.ja[ctr] = (_INTEGER_t) it->first;
+				mkl.K_csr[ctr] = it->second;
+				++ctr;
+			}
+		}
+
+		//clear the current K_gmm row to minimize memory footprint
+		K_gmm[i].clear();
+	}
+	mkl.ia[udof] = nnz;
+
+};
+void fem::mkl_phase0()
+{
+	//not needed during this phase
+	_INTEGER_t nrhs = 0;
+	double * b = NULL;
+	double * x = NULL;
+
+	//actually phase -1, but can't make a method that name
+	mkl.phase = -1;
+	pardiso(mkl.pt, &mkl.maxfct, &mkl.mnum, &mkl.mtype, &mkl.phase, &mkl.n, mkl.K_csr, mkl.ia, mkl.ja, mkl.perm, &nrhs, mkl.iparm, &mkl.msglvl, b, x, &mkl.error);
+
+	if(mkl.error != 0)
+	{
+		std::cout << "ERROR: PHASE(" << mkl.phase << "). ERROR NO = " << mkl.error << "\n";
+		exit(1);
+	}
+};
+void fem::mkl_phase11()
+{
+	//this pass should ONLY be called once AFTER the K matrix has been formed and constrained.
+
+	//ONLY used once to zero the internal MKL pointers
+	for (int i = 0; i < 64; i++) {
+		mkl.pt[i] = 0;
+	}
+
+	//only one matrix
+	mkl.maxfct = 1;
+	mkl.mnum = 1;
+
+	//mtype -2 is real and symmetric indefinite
+	//mtype 11 is real and unsymmetric - seems to be necessary for IR lamba constraint analysis w.o. correct b vector
+	mkl.mtype = -2;
+
+	//solver options
+	for (int i = 0; i < 64; i++) {
+		mkl.iparm[i] = 0;
+	}
+
+	//debugging message level (0: off, 1: on)
+	mkl.msglvl = 0;
+
+	//set the matrix size (n x n)
+	mkl.n = udof;
+
+	//SETUP SOLVER OPTIONS
+	mkl.iparm[0] = 1; // No solver default 
+	mkl.iparm[1] = 2; //Fill-in reordering from METIS
+	mkl.iparm[3] = 0; // CGS 
+	mkl.iparm[4] = 0; // No user fill-in reducing permutation 
+	mkl.iparm[5] = 0; // Write solution into x 
+	mkl.iparm[6] = 0; // Not in use 
+	mkl.iparm[7] = 0; // Max numbers of iterative refinement steps 
+	mkl.iparm[8] = 0; // Not in use 
+	mkl.iparm[9] = 13; // Perturb the pivot elements with 1E-13 
+	mkl.iparm[10] = 1; // Use nonsymmetric permutation and scaling MPS 
+	mkl.iparm[11] = 0; // Not in use 
+	mkl.iparm[12] = 1; // improved accuracy using (non-)symmetric weighted matchings.
+	mkl.iparm[13] = 0; 
+	mkl.iparm[14] = 0; // Not in use 
+	mkl.iparm[15] = 0; // Not in use 
+	mkl.iparm[16] = 0; // Not in use 
+	mkl.iparm[17] = -1; // Output: Number of nonzeros in the factor LU 
+	mkl.iparm[18] = -1; // Output: Mflops for LU factorization 
+	mkl.iparm[20] = 1; // pivoting for symmetric indefinite matrices. 
+	mkl.iparm[26] = 0; // check the data structure 
+	mkl.iparm[27] = 0; // Double (0) or single (1) precision 
+	mkl.iparm[30] = 0; //  partial solution for sparse right-hand sides and sparse solution.
+	mkl.iparm[34] = 1; // zero indexing
+	mkl.iparm[59] = 1; // OOC - only go out of core if over RAM
+
+	//build the K_csr matrix
+	K_gmm2K_csr();
+
+	//not needed during this phase
+	_INTEGER_t nrhs = 0;
+	double * b = NULL;
+	double * x = NULL;
+
+	cout << "    Number of matrix non-zeros: " << mkl.ia[udof] << endl;
+
+	mkl.phase = 11;
+	pardiso(mkl.pt, &mkl.maxfct, &mkl.mnum, &mkl.mtype, &mkl.phase, &mkl.n, mkl.K_csr, mkl.ia, mkl.ja, mkl.perm, &nrhs, mkl.iparm, &mkl.msglvl, b, x, &mkl.error);
+	if(mkl.error != 0)
+	{
+		std::cout << "ERROR: PHASE(" << mkl.phase << "). ERROR NO = " << mkl.error << "\n";
+		exit(1);
+	}
+
+	cout << "    Number of matrix factors: " << mkl.iparm[17] << endl;
+	cout << "    Peak RAM required for matrix analysis: " << mkl.iparm[14]/1024 << " MB" << endl;
+	cout << "    Permanent RAM required for matrix analysis: " << mkl.iparm[15]/1024 << " MB" << endl;
+	cout << "    Gflops required for matrix factorization: " << mkl.iparm[18]/1024 << endl;
+	
+	//need to use a double to prevent overflow in the case of large matrices
+	double ram_Req = mkl.iparm[17];
+	ram_Req *= 8;
+	ram_Req /= 1024*1024;
+	ram_Req += mkl.iparm[15]/1024;
+	cout << "    Approximate RAM required for matrix factorization: " << floor(ram_Req) << " MB" << endl;
+
+
+};
+void fem::mkl_phase22()
+{
+	//not needed during this phase
+	_INTEGER_t nrhs = 0;
+	double * b = NULL;
+	double * x = NULL;
+
+	mkl.phase = 22;
+	pardiso(mkl.pt, &mkl.maxfct, &mkl.mnum, &mkl.mtype, &mkl.phase, &mkl.n, mkl.K_csr, mkl.ia, mkl.ja, mkl.perm, &nrhs, mkl.iparm, &mkl.msglvl, b, x, &mkl.error);
+
+	if(mkl.error != 0)
+	{
+		std::cout << "ERROR: PHASE(" << mkl.phase << "). ERROR NO = " << mkl.error << "\n";
+		exit(1);
+	}
+
+	cout << "    Peak RAM required for matrix factorization: " << mkl.iparm[16]/1024+mkl.iparm[15]/1024 << " MB" << endl;
+};
+void fem::mkl_phase33(_INTEGER_t nrhs, double* b, double * x)
+{
+	mkl.phase = 33;
+	pardiso(mkl.pt, &mkl.maxfct, &mkl.mnum, &mkl.mtype, &mkl.phase, &mkl.n, mkl.K_csr, mkl.ia, mkl.ja, mkl.perm, &nrhs, mkl.iparm, &mkl.msglvl, b, x, &mkl.error);
+
+	if(mkl.error != 0)
+	{
+		std::cout << "ERROR: PHASE(" << mkl.phase << "). ERROR NO = " << mkl.error << "\n";
+		exit(1);
+	}
+};
+void fem::mkl_gap_ims(int startid, _INTEGER_t nrhs, std::vector<double>& b, std::vector<double> &x)
+{
+	//setup the vectors
+	b.clear();
+	b.resize(udof*nrhs, 0);
+	x.clear();
+	x.resize(udof*nrhs, 0);
+
+	//get the load for each face
+	for(int i=0; i<nrhs; ++i)
+	{
+		fem::loadmap_t loadmap;
+		load_gap_face(startid+i, 100e5, loadmap);
+		loadmap2b(loadmap, b.begin()+(udof*i));
+	}
+
+	mkl_phase33(nrhs, &b[0], &x[0]);
+}
+void fem::mkl_solve(const loadmap_t& loadmap, std::vector<double>& b, std::vector<double>& x)
+{
+	//setup the vectors
+	b.clear();
+	b.resize(udof, 0);
+	x.clear();
+	x.resize(udof, 0);
+	
+	loadmap2b(loadmap, b.begin());
+	mkl_phase33(1, &b[0], &x[0]);
+}
+
+
+
+================================================================================
+File: E:/Job_1/SHS--Original/localCopy/influgen_2/src\fem_stiffness.cpp
+================================================================================
+
+#include "fem.h"
+#include "dmatrix.h"
+#include "element_C3D4.h"
+using namespace std;
+
+void fem::number_DOF()
+{
+	//we will first reset all the node DOF's
+	//then mark the constrained DOF's
+	//then renumber all but the constrainted DOF's
+	for(size_t n=0; n<nodes.size(); ++n)
+	{
+		const size_t ndof = nodes[n].DOF.size();
+		for(size_t dof=0; dof<ndof; ++dof)
+		{
+			nodes[n].DOF[dof] = 0;
+		}
+	}
+
+	if(!options.inrel)	//ignore constraints if IR is enabled
+	{
+		for(auto nset=nodesets.begin(); nset!=nodesets.end(); ++nset)
+		{
+			//only bother looping over nodesets where a constraint is set
+			if(nset->second.const_x || nset->second.const_y || nset->second.const_z)	
+			{
+				for(auto n=nset->second.begin(); n!=nset->second.end(); ++n)
+				{
+					if(nset->second.const_x)
+					{
+						nodes[*n].DOF[0] = -1;
+					}
+					if(nset->second.const_y)
+					{
+						nodes[*n].DOF[1] = -1;
+					}
+					if(nset->second.const_z)
+					{
+						nodes[*n].DOF[2] = -1;
+					}
+				}
+			}
+		}
+	}
+
+	udof = 0;
+	for(size_t n=0; n<nodes.size(); ++n)
+	{
+		const size_t ndof = nodes[n].DOF.size();
+		for(size_t dof=0; dof<ndof; ++dof)
+		{
+			if(nodes[n].DOF[dof] != -1)
+			{
+				nodes[n].DOF[dof] = udof;
+				++udof;
+			}
+		}
+	}
+
+	//add 3 DOF in the case of IR for the lambda constraints
+	if(options.inrel)
+	{
+		udof += 6;
+	}
+};
+std::vector<const node*> fem::nid2node(const std::vector<size_t> &nids)
+{
+	const size_t ncnt = nids.size();
+	vector<const node*> n(ncnt);
+	
+	for(size_t i=0; i<ncnt; ++i)
+	{
+		n[i] = &nodes[nids[i]];
+	}
+	return n;
+}
+
+void fem::stiffness_matrix(const bool only_triu)
+{
+	//first number the DOF's
+	number_DOF();
+	cout << "Number of unconstrainted DOF: " << udof << endl;
+
+	//Resize the K matrix
+	K_gmm.clear_mat();
+	K_gmm.resize(udof, udof);
+	nodes_mass.clear();
+	nodes_mass.resize(nodecnt, 0);
+
+	cout << "Building stiffness matrix:" << endl;
+	int eprocessed = 0;	//used for progress status
+	double lastpdisp = 0;	//used for cout'ing progress
+
+	//the average (abs) stiffness K value will be used in case of IR for the constraint
+	double avgK = 0;
+	int avgK_cnt = 0;
+
+	//loop over all the elements, get the local stiffness matrix
+	//assemble it into the global matrix
+	//also store the nodal mass, to be used in the case of IR
+
+	//we actually have to loop over the elementsets b/c that is where materials are defined
+	for(auto eset_ptr=elementsets.begin(); eset_ptr!=elementsets.end(); ++eset_ptr)
+	{
+		elementset* eset = &eset_ptr->second;	//a pointer to the element set
+
+		//now for every element in the elementset
+		for(int eset_e=0; eset_e<eset->size(); ++eset_e)
+		{
+			size_t global_e = (*eset)[eset_e];	//the element id in the global element vector
+
+			dmatrix<double> Kele;	//the local element stiffness matrix
+			vector<double> ele_node_mass;	//the local element node mass vector
+			vector<face> ele_faces;	//vector of element faces
+			vector<int> ldof2gdof;	//a vector to map the local element dof 2 the global dof
+
+			//here is where more element types could easily be added
+			switch(elements[global_e].type)
+			{
+			case element::C3D4:
+					C3D4 ele(nid2node(elements[global_e].nodes), eset->material);
+					ele.calc(Kele, ele_node_mass);
+					ldof2gdof = ele.ldof2gdof();
+					ele_faces = ele.getfaces();
+				break;
+			}
+			
+			//add the local element stiffness matrix to the global matrix
+			for(int i=0; i<Kele.m; i++)
+			{
+				for(int j=0; j<Kele.n; j++)
+				{
+					if(ldof2gdof[i] >= 0 && ldof2gdof[j] >= 0)
+					{
+						if(ldof2gdof[j] >= ldof2gdof[i] || !only_triu)	//used to only store the upper half
+						{
+							K_gmm(ldof2gdof[i], ldof2gdof[j]) += Kele(i,j);
+							avgK += fabs(Kele(i,j));
+							++avgK_cnt;
+						}
+					} else {
+						//node is constrained
+
+						//if non-zero essential boundary conditions are specified, we would have to do more here,
+						//but we don't since only 0 val is currently supported.
+					}
+				}
+			}
+
+			//add the element faces, if the face is already found, it is not an external face
+			//so remove it
+			for(size_t i=0; i<ele_faces.size(); ++i)
+			{
+				auto f = externalelementfaces.find(ele_faces[i]);
+				if(f == externalelementfaces.end())
+				{
+					externalelementfaces[ele_faces[i]] = global_e;
+				} else {
+					externalelementfaces.erase(f);
+				}
+			}
+
+			//add the element node mass to the global node mass vector
+			for(size_t i=0; i<ele_node_mass.size(); ++i)
+			{
+				nodes_mass[elements[global_e].nodes[i]] += ele_node_mass[i];
+			}
+				
+			//update the status counter
+			eprocessed++;
+
+			//used to display progress update
+			double p = double(eprocessed)/double(elementcnt);
+			if(p  > lastpdisp + 0.05)
+			{
+				cout << "  Progress: " << int(p*100.0) << "%" << endl;
+				lastpdisp = p;
+			}
+		}
+	}
+
+
+	if(options.inrel == 1)
+	{
+		//loop over all the nodes to build the body mass, cog, and avg nodal mass
+		IR.body_mass = 0;
+		IR.cog = point(0,0,0);
+				
+		for(size_t n=0; n<nodecnt; ++n)
+		{
+			IR.body_mass += nodes_mass[n];
+			IR.cog += nodes[n].coord*nodes_mass[n];
+		}
+		IR.cog /= IR.body_mass;
+		double avgNodeMass = IR.body_mass/double(nodecnt);
+
+		//Scale factor = [abs mean stiffness matrix] / [mean node mass]
+		//This significantly improves the condition number of the stiffness matrix
+		double scale = (avgK/double(avgK_cnt))/avgNodeMass;
+		IR.scale = scale;
+
+		//ax, ay, az const
+		for(int n=0; n<nodecnt; n++)
+		{
+			for(int d=0; d<3; d++)
+			{
+				const int Gdof = nodes[n].DOF[d];
+
+				K_gmm(Gdof, udof - 3 + d) = scale*nodes_mass[n];
+				if(!only_triu)	//used to store the lower half when necessary
+				{
+					K_gmm(udof - 3 + d, Gdof) = K_gmm(Gdof, udof - 3 + d);
+				}
+			}
+		}
+
+		//alphax, alphay, alphaz
+		for(int n=0; n<nodecnt; n++)
+		{
+			double rx = nodes[n].coord.x()-IR.cog.x();
+			double ry = nodes[n].coord.y()-IR.cog.y();
+			double rz = nodes[n].coord.z()-IR.cog.z();
+			double mn = scale*nodes_mass[n]/(rx*rx+ry*ry+rz*rz);
+
+			//Fx = ((rx*rx+rz*rz)*rz+ry*ry*rz)*ay+(-ry*rz*rz-(rx*rx+ry*ry)*ry)*az
+			{
+				const int Gdof = nodes[n].DOF[0];
+				K_gmm(Gdof, udof-5) = mn*((rx*rx+rz*rz)*rz+ry*ry*rz);
+				K_gmm(Gdof, udof-4) = mn*(-ry*rz*rz-(rx*rx+ry*ry)*ry);
+			}
+
+			//Fy = (-(ry*ry+rz*rz)*rz-rx*rx*rz)*ax+(rx*rz*rz+(rx*rx+ry*ry)*rx)*az
+			{
+				const int Gdof = nodes[n].DOF[1];
+				K_gmm(Gdof, udof-6) = mn*(-(ry*ry+rz*rz)*rz-rx*rx*rz);
+				K_gmm(Gdof, udof-4) = mn*(rx*rz*rz+(rx*rx+ry*ry)*rx);
+			}
+
+			//Fz = ((ry*ry+rz*rz)*ry+rx*rx*ry)*ax+(-rx*ry*ry-(rx*rx+rz*rz)*rx)*ay
+			{
+				const int Gdof = nodes[n].DOF[2];
+				K_gmm(Gdof, udof-6) = mn*((ry*ry+rz*rz)*ry+rx*rx*ry);
+				K_gmm(Gdof, udof-5) = mn*(-rx*ry*ry-(rx*rx+rz*rz)*rx);
+			}
+
+			if(!only_triu)	//used to store the lower half when necessary
+			{
+				for(int d=0; d<3; d++)
+				{
+					const int Gdof = nodes[n].DOF[d];
+					K_gmm(udof-6, Gdof) = K_gmm(Gdof, udof-6);
+					K_gmm(udof-5, Gdof) = K_gmm(Gdof, udof-5);
+					K_gmm(udof-4, Gdof) = K_gmm(Gdof, udof-4);
+				}		
+			}	
+		}
+	}
+
+	//cout finished progress
+	cout << "  Finished!" << endl;
+};
+
+
+
+
+================================================================================
+File: E:/Job_1/SHS--Original/localCopy/influgen_2/src\influgen.cpp
+================================================================================
+
+#include "influgen.h"
+#include "string_functions.h"
+#include <iostream>
+#include <iomanip>
+
+using namespace std;
+using namespace string_functions;
+
+influGen::influGen(part_type Part, solver_type Solver) : solver(Solver)
+{
+	part = Part;
+};
+
+void influGen::load(const std::string optionfile)
+{
+	//load the options file
+	cout << "Loading the option file \"" << optionfile << "\" ... ";
+	model.readoptions(optionfile);
+	cout << "done." << endl;
+	
+	cout << "Loading the mesh file \"" << model.options.meshfile << "\" ... " << endl;
+	model.loadinp();
+	cout << endl;
+};
+void influGen::setup(const std::string gap_set_name)
+{
+	cout << "Initializing the gap ..." << endl;
+	
+	fem::im_direction_t im_direction;
+	switch(part)
+	{
+	case PISTON:
+		im_direction = fem::NORMAL;
+		break;
+	case BUSHING:
+		im_direction = fem::ANTI_NORMAL;
+		break;
+	case BLOCK:
+		im_direction = fem::ANTI_NORMAL;
+		break;
+	case VALVEPLATE:
+		im_direction = fem::NORMAL;
+		break;
+	case SLIPPER:
+		im_direction = fem::ANTI_NORMAL;
+		break;
+	case SWASHPLATE:
+		im_direction = fem::NORMAL;
+		break;
+	}
+
+	model.setupgap(gap_set_name, im_direction);
+
+	if(solver == PARDISO)
+	{
+		cout << "Initializing the linear solver ..." << endl;
+		model.mkl_phase11();
+		cout << "  Finished!" << endl;
+
+		cout << "Factoring the stiffness matrix ..." << endl;
+		model.mkl_phase22();
+		cout << "  Finished!" << endl;
+	} else {
+		cout << "Initializing the linear solver ..." << endl;
+		model.gmm_setup();
+		cout << "  Finished!" << endl;
+	}
+};
+void influGen::stiffness()
+{
+	//gmm requires the whole matrix, pardiso only half
+	if(solver == PARDISO)
+	{
+		//create the stiffness matrix
+		model.stiffness_matrix(true);
+	} else {
+		//create the stiffness matrix
+		model.stiffness_matrix(false);
+	}
+
+}
+void influGen::cleanup()
+{
+	if(solver == PARDISO)
+	{
+		model.mkl_phase0();
+	}
+}
+
+void influGen::gmm_gap_im(size_t id, bool writevtk)
+{
+	if(solver != GMM)
+	{
+		cout << "ERROR: Wrong solver!" << endl;
+		exit(1);
+	}
+
+	//the gap face cnt
+	int gap_facecnt = (int) model.get_gap_facecnt();
+
+	//the gap node cnt
+	int gap_nodecnt = (int) model.get_gap_nodecnt();
+
+	cout << endl;
+	if(id < 0 || id >= gap_facecnt)
+	{
+		cout << "ERROR: The requested gap IM must be in the range of [0, " << gap_facecnt << "]" << endl;
+		exit(1);
+	}
+	cout << "Solving for gap IM #: " << id << endl;
+	fem::loadmap_t loadmap;
+	model.load_gap_face(id, 100e5, loadmap);
+	std::vector<double> b;	//the nodal load vector (used for vtk)
+	std::vector<double> x;	//the solution
+	model.gmm_solve(loadmap, b, x);
+	if(writevtk)
+	{
+		model.writeVTK(filename_gap(id, writevtk), b, x);
+	} else {			
+		//this assumes this function is being called in gapset order
+		fstream imfile(filename_gapim().c_str(), ios::out|ios::binary|ios::app);
+
+		//get each IM from the global solution vector
+		vector<double> im;
+		model.getim(x.begin(), im);
+
+		for(size_t n=0; n<gap_nodecnt; n++)
+		{
+			imfile.write((char*) &(im[n]), sizeof(double));
+		}
+
+		imfile.close();
+	}
+}
+void influGen::gmm_set_im(std::string setname, bool writevtk)
+{
+	if(solver != GMM)
+	{
+		cout << "ERROR: Wrong solver!" << endl;
+		exit(1);
+	}
+
+	cout << "Solving for set: " << setname << endl;
+	fem::loadmap_t loadmap;
+	model.load_set(setname, 100e5, loadmap);
+	std::vector<double> b;	//the nodal load vector (used for vtk)
+	std::vector<double> x;	//the solution
+	model.gmm_solve(loadmap, b, x);
+	if(writevtk)
+	{
+		model.writeVTK(filename_set(setname, writevtk), b, x);
+	} else {		
+		if(part == BLOCK || part == VALVEPLATE)
+		{
+			//write the block / valveplate as a txt
+			fstream imfile(filename_set(setname, false).c_str(), ios::out);
+
+			//get the IM from the global solution vector
+			vector<double> im;
+			model.getim(x.begin(), im);
+								
+			for(size_t n=0; n<im.size(); n++)
+			{
+				imfile << setprecision(16) << im[n] << endl;
+			}		
+
+			imfile.close();
+
+		} else {
+			//and everything else as binary
+
+			fstream imfile(filename_set(setname, false).c_str(), ios::out|ios::binary);
+
+			//get the IM from the global solution vector
+			vector<double> im;
+			model.getim(x.begin(), im);
+								
+			for(size_t n=0; n<im.size(); n++)
+			{
+				imfile.write((char*) &(im[n]), sizeof(double));
+			}		
+
+			imfile.close();
+		}
+	}
+}
+void influGen::mkl_gap_ims()
+{
+	if(solver != PARDISO)
+	{
+		cout << "ERROR: Wrong solver!" << endl;
+		exit(1);
+	}
+
+	//the gap face cnt
+	int gap_facecnt = (int) model.get_gap_facecnt();
+
+	//the gap node cnt
+	int gap_nodecnt = (int) model.get_gap_nodecnt();
+
+	//how many rhs will we solve at once
+	int nrhs = 100;	//should be tuneable, either external or based on DOF
+
+	//how many times will we need to call the pardiso solve
+	int nsolves = (gap_facecnt + nrhs - 1) / nrhs;
+
+	fstream imfile(filename_gapim().c_str(), ios::out|ios::binary);
+	for(int i=0; i<nsolves; ++i)
+	{
+		int startid = nrhs*i;
+		int nextid = nrhs*(i+1);
+		if(nextid > gap_facecnt)
+		{
+			nextid = gap_facecnt;
+		}
+
+		cout << "Solving for gap IM #: " << startid << " to " << nextid-1 << " ( " << i*100/nsolves << "% )" << endl;
+
+		std::vector<double> b; //load vector
+		std::vector<double> x; //solution vector
+		model.mkl_gap_ims(startid, nextid-startid, b, x);
+
+		//write the IM's
+		{			
+			for(int j=0; j<nextid-startid; ++j)
+			{
+				//get each IM from the global solution vector
+				vector<double> im;
+				model.getim(x.begin()+(model.get_udof()*j), im);
+
+				for(size_t n=0; n<gap_nodecnt; n++)
+				{
+					imfile.write((char*) &(im[n]), sizeof(double));
+				}
+			}
+		}
+	}
+	imfile.close();
+
+}
+void influGen::mkl_gap_im(size_t id, bool writevtk)
+{
+	if(solver != PARDISO)
+	{
+		cout << "ERROR: Wrong solver!" << endl;
+		exit(1);
+	}
+
+	//the gap face cnt
+	int gap_facecnt = (int) model.get_gap_facecnt();
+
+	//the gap node cnt
+	int gap_nodecnt = (int) model.get_gap_nodecnt();
+
+	cout << endl;
+	if(id < 0 || id >= gap_facecnt)
+	{
+		cout << "ERROR: The requested gap IM must be in the range of [0, " << gap_facecnt << "]" << endl;
+		exit(1);
+	}
+	cout << "Solving for gap IM #: " << id << endl;
+	fem::loadmap_t loadmap;
+	model.load_gap_face(id, 100e5, loadmap);
+	std::vector<double> b;	//the nodal load vector (used for vtk)
+	std::vector<double> x;	//the solution
+	model.mkl_solve(loadmap, b, x);
+	if(writevtk)
+	{
+		model.writeVTK(filename_gap(id, writevtk), b, x);
+	} else {			
+		//this assumes this function is being called in gapset order
+		fstream imfile(filename_gapim().c_str(), ios::out|ios::binary|ios::app);
+
+		//get each IM from the global solution vector
+		vector<double> im;
+		model.getim(x.begin(), im);
+
+		for(size_t n=0; n<gap_nodecnt; n++)
+		{
+			imfile.write((char*) &(im[n]), sizeof(double));
+		}
+
+		imfile.close();
+	}
+}
+void influGen::mkl_set_im(std::string setname, bool writevtk)
+{
+	if(solver != PARDISO)
+	{
+		cout << "ERROR: Wrong solver!" << endl;
+		exit(1);
+	}
+
+	cout << "Solving for set: " << setname << endl;
+	fem::loadmap_t loadmap;
+	model.load_set(setname, 100e5, loadmap);
+	std::vector<double> b;	//the nodal load vector (used for vtk)
+	std::vector<double> x;	//the solution
+	model.mkl_solve(loadmap, b, x);
+	if(writevtk)
+	{
+		model.writeVTK(filename_set(setname, writevtk), b, x);
+	} else {			
+		if(part == BLOCK || part == VALVEPLATE)
+		{
+			//write the block / valveplate as a txt
+			fstream imfile(filename_set(setname, false).c_str(), ios::out);
+
+			//get the IM from the global solution vector
+			vector<double> im;
+			model.getim(x.begin(), im);
+								
+			for(size_t n=0; n<im.size(); n++)
+			{
+				imfile << setprecision(16) << im[n] << endl;
+			}		
+
+			imfile.close();
+
+		} else {
+			//and everything else as binary
+
+			fstream imfile(filename_set(setname, false).c_str(), ios::out|ios::binary);
+
+			//get the IM from the global solution vector
+			vector<double> im;
+			model.getim(x.begin(), im);
+								
+			for(size_t n=0; n<im.size(); n++)
+			{
+				imfile.write((char*) &(im[n]), sizeof(double));
+			}		
+
+			imfile.close();
+		}
+	}
+}
+void influGen::make_SlipperSwash_mesh_files()
+{
+	cout << "Performing initial processing ... ";
+
+	//write the gapface set to file
+	ofstream file;
+	file.precision(8);
+	
+	file.open("./faces.txt");
+	
+	//number the gap nodes
+	std::map<size_t, int> nid2gap;
+	{
+		int renumber = 0;
+		for(auto n=model.gap_nodeset->begin(); n!=model.gap_nodeset->end(); ++n)
+		{
+			nid2gap[*n] = renumber;
+			++renumber;
+		}
+	}
+
+	for(auto f=model.gap_face_vector.begin(); f!=model.gap_face_vector.end(); ++f)
+	{
+		for(size_t n=0; n<(*f)->nodes.size(); ++n)
+		{
+			file << nid2gap[(*f)->nodes[n]->nid] << "\t";
+		}
+		file << scientific;
+		point centroid = (*f)->centroid();
+		file << centroid.x() << "\t" << centroid.y() << endl;
+	}
+
+	file.close();
+
+	file.open("./nodes.txt");
+
+	size_t n_gap = 0;
+	for(auto n=model.gap_nodeset->begin(); n!=model.gap_nodeset->end(); ++n)
+	{
+		file << nid2gap[*n] << "\t";
+		file << scientific <<
+			model.nodes[*n].x() << "\t" <<
+			model.nodes[*n].y() << 
+			endl;
+		++n_gap;
+	}
+
+	file.close();
+
+	cout << "done." << endl;
+
+};
+void influGen::make_PistonBush_mesh_files()
+{
+	cout << "Performing initial processing ... ";
+
+	//write the gapface set to file
+	ofstream file;
+	file.precision(8);
+	
+	file.open("./xyz_faces.dat");
+	
+	file << model.gap_face_vector.size() << endl;
+	for(auto f=model.gap_face_vector.begin(); f!=model.gap_face_vector.end(); ++f)
+	{
+		file << scientific;
+		point centroid = (*f)->centroid();
+		file << centroid.x() << "\t" << centroid.y() << "\t" << centroid.z() << endl;
+	}
+
+	file.close();
+
+	file.open("./xyz_nodes.dat");
+
+	file << model.gap_nodeset->size() << endl;
+	for(auto n=model.gap_nodeset->begin(); n!=model.gap_nodeset->end(); ++n)
+	{
+		file << scientific <<
+			model.nodes[*n].x() << "\t" <<
+			model.nodes[*n].y() << "\t" <<
+			model.nodes[*n].z() << 
+			endl;
+	}
+
+	file.close();
+
+	cout << "done." << endl;
+
+};
+void influGen::make_BlockVP_mesh_files()
+{
+	cout << "Performing initial processing ... ";
+
+	//write the gapface set to file
+	ofstream file;
+	file.precision(8);
+	
+	file.open("./gap.txt");
+
+	std::map<size_t, int> nid2gap;
+
+	file << "NODES " << model.gap_nodeset->size() << endl;
+	int gapnodecnt = 0;
+	for(auto n=model.gap_nodeset->begin(); n!=model.gap_nodeset->end(); ++n)
+	{
+		nid2gap[model.nodes[*n].nid] = gapnodecnt;
+		file << scientific <<
+			model.nodes[*n].x() << "\t" <<
+			model.nodes[*n].y() << "\t" <<
+			model.nodes[*n].z() << 
+			endl;
+		++gapnodecnt;
+	}
+
+	file << "ELEMENTS " << model.gap_face_vector.size() << endl;
+	for(auto f=model.gap_face_vector.begin(); f!=model.gap_face_vector.end(); ++f)
+	{
+		for(size_t n=0; n<(*f)->nodes.size(); ++n)
+		{
+			file << nid2gap[(*f)->nodes[n]->nid] << "\t";
+		}
+		file << endl;
+	}
+
+	file.close();
+
+	cout << "done." << endl;
+
+};
+
+void influGen::make_vizvtksets()
+{
+	for(auto set=model.nodesets.begin(); set!=model.nodesets.end(); ++set)
+	{
+		std::vector<const face*> fs;
+		model.nodeset2faceset(set->second, fs);
+		model.writeFacesetVTK("./vtk/vizvtkset_"+set->first+".vtk", fs);
+	}
+}
+
+std::string influGen::filename_gap(size_t id, bool is_vtk)
+{
+	string filename = "";
+
+
+	switch(part)
+	{
+	case PISTON:
+		if(is_vtk)
+		{
+			filename = "./vtk/im_piston_gap_" + n2s(id) +".vtk";
+		} else {
+			filename = "./im_piston_gap_" + n2s(id) +".bin";
+		}
+		break;
+	case BUSHING:
+		if(is_vtk)
+		{
+			filename = "./vtk/im_bushing_gap_" + n2s(id) +".vtk";
+		} else {
+			filename = "./im_bushing_gap_" + n2s(id) +".bin";
+		}
+		break;
+	case BLOCK:
+		if(is_vtk)
+		{
+			filename = "./vtk/IM.gap." + n2s(id) +".vtk";
+		} else {
+			filename = "./IM.gap." + n2s(id) +".bin";
+		}
+		break;
+	case VALVEPLATE:
+		if(is_vtk)
+		{
+			filename = "./vtk/IM.gap." + n2s(id) +".vtk";
+		} else {
+			filename = "./IM.gap." + n2s(id) +".bin";
+		}
+		break;
+	case SLIPPER:
+		if(is_vtk)
+		{
+			filename = "./vtk/im_slipper_gap_" + n2s(id) +".vtk";
+		} else {
+			filename = "./im_slipper_gap_" + n2s(id) +".bin";
+		}
+		break;
+	case SWASHPLATE:
+		if(is_vtk)
+		{
+			filename = "./vtk/im_swashplate_gap_" + n2s(id) +".vtk";
+		} else {
+			filename = "./im_swashplate_gap_" + n2s(id) +".bin";
+		}
+		break;
+	}
+
+	return filename;
+}
+std::string influGen::filename_set(std::string setname, bool is_vtk)
+{
+	string filename = "";
+
+	switch(part)
+	{
+	case PISTON:
+		if(is_vtk)
+		{
+			filename = "./vtk/" + setname + ".vtk";
+		} else {
+			filename = "./" + setname + ".bin";
+		}
+		break;
+	case BUSHING:
+		if(is_vtk)
+		{
+			filename = "./vtk/" + setname + ".vtk";
+		} else {
+			filename = "./" + setname + ".bin";
+		}
+		break;
+	case BLOCK:
+		if(is_vtk)
+		{
+			filename = "./vtk/IM." + setname + ".vtk";
+		} else {
+			filename = "./IM." + setname + ".txt";
+		}
+		break;
+	case VALVEPLATE:
+		if(is_vtk)
+		{
+			filename = "./vtk/IM." + setname + ".vtk";
+		} else {
+			filename = "./IM." + setname + ".txt";
+		}
+		break;
+	case SLIPPER:
+		if(is_vtk)
+		{
+			filename = "./vtk/im_slipper_" + setname + ".vtk";
+		} else {
+			filename = "./im_slipper_" + setname + ".bin";
+		}
+		break;
+	case SWASHPLATE:
+		if(is_vtk)
+		{
+			filename = "./vtk/im_swashplate_" + setname + ".vtk";
+		} else {
+			filename = "./im_swashplate_" + setname + ".bin";
+		}
+		break;
+	}
+
+	return filename;
+}
+std::string influGen::filename_gapim()
+{
+	string filename = "";
+
+	switch(part)
+	{
+	case PISTON:
+		filename = "./im_piston_gap.bin";
+		break;
+	case BUSHING:
+		filename = "./im_bushing_gap.bin";
+		break;
+	case BLOCK:
+		filename = "./IM.gap.bin";
+		break;
+	case VALVEPLATE:
+		filename = "./IM.gap.bin";
+		break;
+	case SLIPPER:
+		filename = "./im_slipper_gap.bin";
+		break;
+	case SWASHPLATE:
+		filename = "./im_swashplate_gap.bin";
+		break;
+	}
+
+	return filename;
+}
+
+
+
+================================================================================
+File: E:/Job_1/SHS--Original/localCopy/influgen_2/src\influgen.h
+================================================================================
+
+#pragma once
+#include <string>
+#include <map>
+
+#include "fem.h"
+
+
+class influGen
+{
+public:
+	enum part_type
+	{
+		PISTON,
+		BUSHING,
+		BLOCK,
+		VALVEPLATE,
+		SLIPPER,
+		SWASHPLATE,
+		NONE
+	};
+
+	enum solver_type
+	{
+		GMM,
+		PARDISO
+	};
+
+	part_type part;
+	const solver_type solver;
+	fem model;
+	
+private:
+	//these two functions are used to generate the correct file path for each interface
+	std::string filename_gap(size_t id, bool is_vtk = false);
+	std::string filename_gapim();
+	std::string filename_set(std::string setname, bool is_vtk = false);
+
+public:
+	influGen(part_type Part, solver_type Solver);	
+	void load(const std::string optionfile);
+	void stiffness();
+	void setup(const std::string gap_set_name);
+	
+	void make_SlipperSwash_mesh_files();
+	void make_PistonBush_mesh_files();
+	void make_BlockVP_mesh_files();
+	
+	void make_vizvtksets();
+
+	void cleanup();
+	void gmm_gap_im(size_t id, bool writevtk = false);
+	void gmm_set_im(std::string setname, bool writevtk = false);
+	void mkl_gap_ims();
+	void mkl_set_im(std::string setname, bool writevtk);
+	void mkl_gap_im(size_t id, bool writevtk = false);
+
+};
+
+
+================================================================================
+File: E:/Job_1/SHS--Original/localCopy/influgen_2/src\main.cpp
+================================================================================
+
+#include "influgen.h"
+#include "string_functions.h"
+#include <iostream>
+#include <stdlib.h>
+#include "../fstiAuthorization/fsti_netlic_client.h"
+
+void help()
+{
+	cout << endl;
+	cout << "Usage: " << endl;
+	cout << "influgen_2.exe -INTERFACE -WORK [arg] [-WORK [arg]] ..." << endl;
+	cout << endl;
+	cout << "-INTERFACE must be only one of the following:" << endl;
+	cout << "  -piston" << endl;
+	cout << "  -bushing" << endl;
+	cout << "  -block" << endl;
+	cout << "  -valveplate" << endl;
+	cout << "  -slipper" << endl;
+	cout << "  -swashplate" << endl;
+	cout << endl;
+	cout << "-WORK may be any of the following:" << endl;
+	cout << "  -imset SETNAME" << endl;
+	cout << "  -vtkset SETNAME" << endl;
+	cout << "  -vtkgap GAP_FACE_ID" << endl;
+	cout << "  -imgap" << endl;
+	cout << "  -vizvtksets (This will only create undeformed surface vtk's of the defined sets)" << endl;
+	exit(2);
+};
+
+struct work
+{
+	enum types
+	{
+		imgap,
+		imset,
+		vtkgap,
+		vtkset,
+		makefiles,
+		vizvtksets,
+		none
+	};
+	types type;
+	std::string arg;
+};
+void process_args(int argc, char *argv[], influGen::part_type& part, std::vector<work>& works, influGen::solver_type& solver)
+{
+	//set to none values
+	part = influGen::NONE;
+	works.clear();
+	//always make the files
+	{
+		work w;
+		w.type = work::makefiles;
+		works.push_back(w);
+	}
+
+	//default the solver to PARDISO
+	solver = influGen::PARDISO;
+
+	for(int i=1; i<argc; ++i)
+	{
+		//first check the interface ty pes
+		if(strcmp("-piston", argv[i]) == 0)
+		{
+			if(part != influGen::NONE)
+			{
+				//can't set two parts
+				cout << "ERROR: Only set one interface!" << endl;
+				help();
+			}
+			part = influGen::PISTON;
+		} else if(strcmp("-bushing", argv[i]) == 0)
+		{
+			if(part != influGen::NONE)
+			{
+				//can't set two parts
+				cout << "ERROR: Only set one interface!" << endl;
+				help();
+			}
+			part = influGen::BUSHING;
+		} else if(strcmp("-block", argv[i]) == 0)
+		{
+			if(part != influGen::NONE)
+			{
+				//can't set two parts
+				cout << "ERROR: Only set one interface!" << endl;
+				help();
+			}
+			part = influGen::BLOCK;
+		} else if(strcmp("-valveplate", argv[i]) == 0)
+		{
+			if(part != influGen::NONE)
+			{
+				//can't set two parts
+				cout << "ERROR: Only set one interface!" << endl;
+				help();
+			}
+			part = influGen::VALVEPLATE;
+		} else if(strcmp("-slipper", argv[i]) == 0)
+		{
+			if(part != influGen::NONE)
+			{
+				//can't set two parts
+				cout << "ERROR: Only set one interface!" << endl;
+				help();
+			}
+			part = influGen::SLIPPER;
+		} else if(strcmp("-swashplate", argv[i]) == 0)
+		{
+			if(part != influGen::NONE)
+			{
+				//can't set two parts
+				cout << "ERROR: Only set one interface!" << endl;
+				help();
+			}
+			part = influGen::SWASHPLATE;
+		}
+		//now check the operations
+		else if(strcmp("-imset", argv[i]) == 0)
+		{
+			work w;
+			w.type = work::imset;
+			if(i+1 < argc)
+			{
+				++i;
+				w.arg = argv[i];
+				works.push_back(w);
+			} else {
+				cout << "ERROR: -imset requires an argument!" << endl;
+				help();
+			}
+		}
+		else if(strcmp("-vtkset", argv[i]) == 0)
+		{
+			work w;
+			w.type = work::vtkset;
+			if(i+1 < argc)
+			{
+				++i;
+				w.arg = argv[i];
+				works.push_back(w);
+			} else {
+				cout << "ERROR: -vtkset requires an argument!" << endl;
+				help();
+			}
+		}
+		else if(strcmp("-vtkgap", argv[i]) == 0)
+		{
+			work w;
+			w.type = work::vtkgap;
+			if(i+1 < argc)
+			{
+				++i;
+				w.arg = argv[i];
+				works.push_back(w);
+			} else {
+				cout << "ERROR: -vtkgap requires an argument!" << endl;
+				help();
+			}
+		}
+		else if(strcmp("-imgap", argv[i]) == 0)
+		{
+			work w;
+			w.type = work::imgap;
+			works.push_back(w);
+
+			//set the solver type to pardiso since we're generating the whole im gap
+			solver = influGen::PARDISO;
+		}
+		else if(strcmp("-vizvtksets", argv[i]) == 0)
+		{
+			work w;
+			w.type = work::vizvtksets;
+			works.push_back(w);
+		}
+		else {
+			if(string_functions::trim(argv[i]).length() > 0)
+			{
+				//argument not reconized
+				cout << "ERROR: argument \"" << argv[i] << "\" not recognized!" << endl;
+				help();
+			}
+		}
+	}
+	if(part == influGen::NONE)
+	{
+		cout << "ERROR: At least one interface must be specified!" << endl;
+		help();
+	}
+	if(works.size() == 0)
+	{
+		cout << "ERROR: No work to do was defined!" << endl;
+		help();
+	}
+}
+
+int main(int argc, char *argv[])
+{
+	//the part type
+	influGen::part_type part;
+	//the solver type based on the operation to be preformed
+	influGen::solver_type solver;
+	//the work to be done	
+	std::vector<work> works;
+	//process the arguments
+	process_args(argc, argv, part, works, solver);
+
+	//check if influgen_mkl is authorized
+	//convert the part enum to a string to pass to netlic just for logging on the netlic server
+	std::string interface_name;
+	switch(part)
+	{
+	case influGen::PISTON:
+		interface_name = "PISTON";
+		break;
+	case influGen::BUSHING:
+		interface_name = "BUSHING";
+		break;
+	case influGen::BLOCK:
+		interface_name = "BLOCK";
+		break;
+	case influGen::VALVEPLATE:
+		interface_name = "VALVEPLATE";
+		break;
+	case influGen::SLIPPER:
+		interface_name = "SLIPPER";
+		break;
+	case influGen::SWASHPLATE:
+		interface_name = "SWASHPLATE";
+		break;
+	case influGen::NONE:
+		interface_name = "NONE";
+		break;
+	};
+	void * license = fsti_netlic::checkout_license("influgen_mkl", interface_name);
+
+	//create the two directories even if they really aren't needed
+	system("IF NOT EXIST .\\vtk ( mkdir .\\vtk )");
+	system("IF NOT EXIST .\\tmp ( mkdir .\\tmp )");
+
+	//create the influGen instance
+	influGen ig(part, solver);
+	ig.load("./input/input.txt");
+
+	//set the pardiso options even if just gmm will be used
+	_putenv("MKL_PARDISO_OOC_PATH=.\\tmp\\influgen_tmp");
+	if(ig.model.options.max_ram > 0)
+	{
+		_putenv(("MKL_PARDISO_OOC_MAX_CORE_SIZE=" + string_functions::n2s(ig.model.options.max_ram)).c_str());
+	} else {
+		_putenv("MKL_PARDISO_OOC_MAX_CORE_SIZE=2000");
+	}
+	_putenv("MKL_PARDISO_OOC_MAX_SWAP_SIZE=0");
+	_putenv("MKL_PARDISO_OOC_KEEP_FILE=1");
+
+	//generate the stiffness matrix
+	ig.stiffness();
+
+	//setup the remainder of the influgen process
+	ig.setup("gap");
+
+	//now do the work
+	for(int w=0; w<works.size(); ++w)
+	{
+		switch(works[w].type)
+		{
+		case work::imset:
+			if(solver == influGen::PARDISO)
+			{
+				ig.mkl_set_im(works[w].arg, false);
+			} else {
+				ig.gmm_set_im(works[w].arg, false);
+			}
+			break;
+		case work::vtkset:
+			if(solver == influGen::PARDISO)
+			{
+				ig.mkl_set_im(works[w].arg, true);
+			} else {
+				ig.gmm_set_im(works[w].arg, true);
+			}
+			break;
+		case work::vtkgap:
+			if(solver == influGen::PARDISO)
+			{
+				ig.mkl_gap_im(string_functions::s2i(works[w].arg), true);
+			} else {
+				ig.gmm_gap_im(string_functions::s2i(works[w].arg), true);
+			}
+			break;
+		case work::imgap:
+			//solver must always be PARDISO in this case
+			ig.mkl_gap_ims();
+			break;
+		case work::makefiles:
+			switch(part)
+			{
+			case influGen::PISTON:
+			case influGen::BUSHING:
+				ig.make_PistonBush_mesh_files();
+				break;
+			case influGen::BLOCK:
+			case influGen::VALVEPLATE:
+				ig.make_BlockVP_mesh_files();
+				break;
+			case influGen::SLIPPER:
+			case influGen::SWASHPLATE:
+				ig.make_SlipperSwash_mesh_files();
+				break;
+			}
+			break;
+		case work::vizvtksets:
+			ig.make_vizvtksets();
+			break;
+		}
+	}
+	
+	//clean
+	ig.cleanup();
+
+	//release the license
+	fsti_netlic::release_license(license);
+
+	return 0;
+}
+
+
+
+================================================================================
+File: E:/Job_1/SHS--Original/localCopy/influgen_2/src\material.h
+================================================================================
+
+#pragma once
+#include <string>
+
+struct material_type
+{
+	std::string name;
+	double E;
+	double nu;
+	double rho;
+};
+
+
+
+================================================================================
+File: E:/Job_1/SHS--Original/localCopy/influgen_2/src\node.h
+================================================================================
+
+#pragma once
+#include <array>
+#include "point.h"
+
+struct node
+{
+	//the node id in the global node vector
+	size_t nid;
+
+	//XYZ location
+	point coord;
+
+	//global DOF numbering
+	//assume 3 DOF / node
+	std::array<int, 3> DOF;
+
+	node()
+	{
+		coord = point(0,0,0);
+	};
+
+	node(const point p)
+	{
+		coord = p;
+	};
+
+	node(const double x,const double y, const double z)
+	{
+		coord = point(x,y,z);
+	};
+
+	double operator[] (const int i) 
+	{
+		return coord[i];
+	};
+
+	double x() const
+	{
+		return coord.x();
+	};
+
+	double y() const
+	{
+		return coord.y();
+	};
+
+	double z() const
+	{
+		return coord.z();
+	};
+};
+
+
+================================================================================
+File: E:/Job_1/SHS--Original/localCopy/influgen_2/src\nodeset.h
+================================================================================
+
+#pragma once
+#include <vector>
+
+//using a vector instead of a set to maintain read order in the event
+//the read order was not ascending ordered
+class nodeset : public std::vector<size_t>
+{
+public:
+	bool const_x;
+	bool const_y;
+	bool const_z;
+
+	nodeset()
+	{
+		const_x = false;
+		const_y = false;
+		const_z = false;
+	}
+};
+
+
+
+================================================================================
+File: E:/Job_1/SHS--Original/localCopy/influgen_2/src\point.h
+================================================================================
+
+#pragma once
+
+struct point
+{
+	double coord[3];
+
+	point(const double x, const double y, const double z)
+	{
+		coord[0] = x;
+		coord[1] = y;
+		coord[2] = z;
+	};
+
+	point()
+	{
+		for(int i=0; i<3; i++)
+		{
+			coord[i] = 0;
+		}
+	};
+
+	double & operator[] (const int i) 
+	{
+		return coord[i];
+	}
+
+	const double & operator[] (const int i) const
+	{
+		return coord[i];
+	}
+
+	double x() const
+	{
+		return coord[0];
+	};
+
+	double y() const
+	{
+		return coord[1];
+	}
+
+	double z() const
+	{
+		return coord[2];
+	}
+
+	point operator+ (point p) const
+	{
+	  for(int i=0; i<3; i++)
+	  {
+		  p.coord[i] += coord[i];
+	  }
+	  return (p);
+	}
+
+	point operator* (double d) const
+	{
+		point p;
+	  for(int i=0; i<3; i++)
+	  {
+		  p.coord[i] = coord[i]*d;
+	  }
+	  return (p);
+	}
+
+	point & operator+= (point p) 
+	{
+	  for(int i=0; i<3; i++)
+	  {
+		  coord[i] += p[i];
+	  }
+	  return *this;
+	}
+
+	point operator- (point p) const
+	{
+	  for(int i=0; i<3; i++)
+	  {
+		  p.coord[i] = coord[i] - p.coord[i];
+	  }
+	  return (p);
+	}
+
+	point & operator*= (const double s) 
+	{
+	  for(int i=0; i<3; i++)
+	  {
+		  coord[i] *= s;
+	  }
+	  return *this;
+	}
+
+	point & operator/= (const double s) 
+	{
+	  for(int i=0; i<3; i++)
+	  {
+		  coord[i] /= s;
+	  }
+	  return *this;
+	}
+
+	double norm()
+	{
+		double norm2 = 0;
+		for(int i=0; i<3; i++)
+		{
+			norm2 += coord[i]*coord[i];
+		}
+		return pow(norm2, 0.5);
+	}
+
+	double dot(const point p) const
+	{
+		double d = 0;
+		for(int i=0; i<3; i++)
+		{
+			d += coord[i]*p.coord[i];
+		}
+		return d;
+	}
+
+	static point cross(const point & p1, const point & p2)
+	{
+		point c;
+		c[0] = p1.y()*p2.z()-p1.z()*p2.y();
+		c[1] = p1.z()*p2.x()-p1.x()*p2.z();
+		c[2] = p1.x()*p2.y()-p1.y()*p2.x();
+		return c;
+	}
+};
+
+
+================================================================================
+File: E:/Job_1/SHS--Original/localCopy/influgen_2/src\string_functions.cpp
+================================================================================
+
+#include "string_functions.h"
+#include <sstream>
+#include <algorithm>
+#include <functional> 
+#include <cctype>
+#include <locale>
+
+using namespace std;
+
+//Utility functions used for text reading
+vector<string> string_functions::Tokenize(const string& str,const string& delimiters)
+{
+	vector<string> tokens;
+
+    // Skip delimiters at beginning.
+    string::size_type lastPos = str.find_first_not_of(delimiters, 0);
+    // Find first "non-delimiter".
+    string::size_type pos = str.find_first_of(delimiters, lastPos);
+
+	while (string::npos != pos || string::npos != lastPos)
+    {
+        // Found a token, add it to the vector.
+        tokens.push_back(str.substr(lastPos, pos - lastPos));
+        // Skip delimiters.  Note the "not_of"
+        lastPos = str.find_first_not_of(delimiters, pos);
+        // Find next "non-delimiter"
+        pos = str.find_first_of(delimiters, lastPos);
+    }
+
+	return tokens;
+};
+double string_functions::s2d(const string s)
+{
+	istringstream iss (s);
+	double n;
+	iss >> n;
+	return n;
+};
+int string_functions::s2i(const string s)
+{
+	istringstream iss (s);
+	int n;
+	iss >> n;
+	return n;
+};
+std::string string_functions::str2lower(std::string s)
+{
+	std::transform(s.begin(), s.end(), s.begin(), ::tolower);
+	return s;
+};
+
+// trim from start
+static std::string &ltrim(std::string &s) 
+{
+        s.erase(s.begin(), std::find_if(s.begin(), s.end(), std::not1(std::ptr_fun<int, int>(std::isspace))));
+        return s;
+}
+// trim from end
+static std::string &rtrim(std::string &s) 
+{
+        s.erase(std::find_if(s.rbegin(), s.rend(), std::not1(std::ptr_fun<int, int>(std::isspace))).base(), s.end());
+        return s;
+}
+// trim from both ends
+std::string string_functions::trim(std::string s) 
+{
+        return ltrim(rtrim(s));
+};
+
+
+
+
+
+================================================================================
+File: E:/Job_1/SHS--Original/localCopy/influgen_2/src\string_functions.h
+================================================================================
+
+#pragma once 
+#include <string>
+#include <sstream>
+#include <vector>
+
+//Utility functions used for text reading
+namespace string_functions
+{
+	std::vector<std::string> Tokenize(const std::string& str,const std::string& delimiters);
+	double s2d(const std::string s);
+	int s2i(const std::string s);
+	std::string str2lower(std::string s);
+	std::string trim(std::string s);
+
+	template <class T> std::string n2s(const T number)
+	{
+		std::ostringstream oss (std::ostringstream::out);
+		oss.str("");
+		oss << number;
+		return oss.str();
+	};
+}
+
+

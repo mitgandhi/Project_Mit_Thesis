@@ -1,0 +1,145 @@
+﻿// ------------------------------------------------------------------------- //
+// FSTI GAP DESIGN geometry input file
+// ------------------------------------------------------------------------- //
+
+section geometry
+	// Pitch Diameter Cylinder Block (The pitch diameter of the pistons inside the cylinder block.) - [mm]
+	dB	84.16
+
+	// Piston Diameter (The outer diameter (nominal diameter) of the piston.)  - [mm]
+	dK	0.019464
+
+	// Bushing Diameter (The inner diameter of the bushing.) - [mm]
+	dZ	0.019504
+
+	// Piston Length (The length of one piston measured from the flat end to the center of the piston head.) - [mm]
+	lK	62
+
+	// Bushing Length (The length of the entire bushing inside the cylinder block.) - [mm]
+	lF	34.1
+
+	// Bushing Beginning Position (The length from the top of the cylinder block to the beginning of the bushing. If a chamfer is present, the distance will be to the end of the chamfer.) - [mm]
+	le	0.5
+
+	// Displacement Chamber Length with Piston at ODP (The distance from the flat bottom of the piston (at Outer Dead Point) to the bottom of the displacement chamber.) - [mm]
+	lZ0	21.358
+
+	// Slipper Outer Diameter (The outer diameter of the slipper determining the outer border for the gap between slipper and swash plate (= 0 for no slipper).) - [mm]
+	doutG	27
+
+	// Slipper Inner Diameter (The inner diameter of the slipper determining the inner border of the gap between slipper and swash plate (= 0 for no slipper).) - [mm]
+	dinG	9
+
+	// Cylinder Block Length (Length of the cylinder block. In the case of flat sealing surfaces, the length of the block is from its bottom surface (sealing surface) to its top surface. For the spherical design, the length of the block is the distance from the point defined by the intersection of the spherical gap surface with the shaft axis to the top surface (no neck).) - [mm]
+	lengthB	69.44
+
+	// Cylinder Block Canal Length (Length of the kidney canal. In the case of flat sealing surfaces, the length of the kidney canal is the distance between the bottom point of the displacement chamber s surface to the cylinder block s sealing surface. In the case of spherical design, the length of the kidney canal is the distance between the bottom of the displacement chamber and the point defined by the intersection of the spherical gap surface with the shaft axis.) - [mm]
+	lengthcanalB	9.95
+
+	// Piston Relative Rotational Speed (The rotational speed of the piston in relation to the bushing or cylinder bore. If =0, there is no relative rotation. If =1, then the piston rotates relative to the cylinder once per pump revolution. Values between 0 and 1 represent a fraction of this rotational speed. 1 is typically a good approximation.) - [-]
+	speedK	1
+
+	// Diameter Orifice Piston Head (The diameter of the orifice in the piston head. This value partially defines the flow to the slipper (= 0 if no slipper).) - [mm]
+	dDK	3
+
+	// Length of Piston Gap surface (Length of the effective piston surface available to form the gap (do not include chamfers).) - [mm]
+	lKG	51.62
+
+	// Length of Piston Chamfer (Length of the chamfer on the bottom of the piston (= 0 if N/A).) - [mm]
+	lch	1.17
+
+	// Reduction Radius for Spherical Piston (This parameter describes the spherical macro geometry of the piston by specifying the reduction of the piston radius (0 if N/A).) - [microns]
+	rK_red	0
+
+	// Length Spherical Section of the Piston (Length of the effective piston surface available to form the gap (does not include chamfers; half spherical piston only; or = 0).) - [mm]
+	lK_hs	0
+
+	// Distance to the Center of Mass of the Piston/Slipper Assembly (Distance between the point of the load incidence on the piston head and the center of mass of the piston/slipper assembly.) - [mm]
+	lSK	26.02216
+
+	// Mass of Piston/Slipper Assembly (The mass of one piston/slipper assembly component.) - [g]
+	mK	103.117
+
+	// Swash Plate Cross Angle (Measured in x-z plane, positive counterclockwise when viewed from positive y-axis.) [deg]
+	gamma	0
+
+	// Offset of the swash plate rotation axis from the pump origin in the y-axis. Positive values are towards IDC [mm]
+	offset_J	0
+
+	// Offset of the swash plate rotation axis from the pump origin in the z-axis. Positive values are away from the valve plate[mm]
+	offset_K	0
+
+	// Gap Inner Diameter (The inner diameter of the cylinder block gap surface.) - [mm]
+	d_gap_in	36.9
+
+	// Opening Inner Diameter (The inner diameter of the gap opening to the ports.) - [mm]
+	d_ope_in	42.5
+
+	// Opening Outer Diameter (The outer diameter to the gap opening to the ports.) - [mm]
+	d_ope_out	67.7
+
+	// Groove Separating the Sealing Land to the Outer Bearing, Inner Diameter (= 0 if N/A) ( The inner diameter of the outer bearing gap.) - [mm]
+	d_groove_in	0
+
+	// Groove Separating the Sealing Land to the Outer Bearing, Outer Diameter (= 0 if N/A) (The outer diameter of the outer bearing of the gap.)  [mm]
+	d_groove_out	0
+
+	// Gap Outer Diameter (The outer diameter of the cylinder block gap surface.) - [mm]
+	d_gap_out	73.9
+
+	// Spherical Diameter of Cylinder Block & Valve Plate (Enter 0 in the case of standard flat design.) - [mm]
+	d_spherical	165
+
+	// Outer Diameter of the Cylinder Block - [mm]
+	dBa	113.4
+
+	// Distance between the cylinder block's reference system and the point of application of the reaction force associated with the spline joint.
+	delta_z0	0
+
+	// Projection of the Displacement Chamber Area in the Axial Direction (Projected area of the base of the displacement area in a downwards direction towards the opening minus the area of the opening (kidney). This is only used in cases where the geometry is simple (i.e. no slanted channels, etc...). For more complicated cases, use DC_mesh below.) - [mm^2]
+	ADC	0
+
+	// Displacement Chamber Surface Mesh (use NULL if not provided) (Path for the surface mesh e.g. ./input/block/DC.inp. - At present the model now can read just the Standard3D Abaqus format.) - [-]
+	DC_mesh	G:\Inline\IM_S4\blockvalveplate\block\DC_mesh_0.1.inp
+
+	// Mass of the Cylinder Block - [kg]
+	mB	3.169
+
+	// Moment of Inertia of the Block (The reference is the spline center. The moment of intertia refers to any radial position (Ixx = Iyy).) - [kg*m^2]
+	IMB	0.024123857
+
+	// Spring Force Cylinder Block (Total force exerted on the cylinder block by the spring (or system of springs).) - [N]
+	Fblock	1100
+
+	// Area where the Spring Force (pushing down the block) is acting on (Cylinder block area on which the spring exerts a downward force.) - [mm^2]
+	spring_area	252.113
+
+	// Distance from Center of Piston Head to Slipper Center of Mass (Distance between the point of load incidence on the piston head and the center of mass of the slipper.) - [mm]
+	lSG	44.7004
+
+	// Distance from Center of Piston Head to Slipper running face (Distance between the point of load incidence on the piston to the bottom of the slipper.) - [mm]
+	lG	5.24
+
+	// Slipper Orifice Diameter (The diameter of the orifice in the slipper. This value defines the flow through the slipper (= 0 for no slipper).) - [mm]
+	dDG	1
+
+	// Slipper Orifice Length (The length of the orifice in the slipper. This value defines the flow throughout the slipper (= 0 if no slipper).) - [mm]
+	lDG	4.7
+
+	// Length of Orifice Piston Head (The length of the orifice in the piston head. This value partially defines the flow to the slipper.) - [mm]
+	lDK	3.5
+
+	// Slipper Mass (Mass of the slipper.) - [g]
+	mG	30.94
+
+	// Slipper Socket Area (projected normal to the swashplate) (Area projected from the slipper in the direction of the swash plate (= 0 for no slipper).) - [mm^2]
+	aSock	0
+
+	// Slipper socket radius - [mm]
+	r_socket	0
+
+	// Volume of slipper pocket - [mm^3]
+	vPocket	0
+
+endsection
+

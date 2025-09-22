@@ -37,7 +37,7 @@ class AnimationController:
         window_to_image_filter.SetInputBufferTypeToRGBA()  # Changed from RGB to RGBA for transparency
         window_to_image_filter.ReadFrontBufferOff()
 
-        temp_dir = Path("./temp_frames")
+        temp_dir = Path("../../vtk_solver/temp_frames")
         temp_dir.mkdir(exist_ok=True)
 
         was_playing = self.is_playing
@@ -130,14 +130,92 @@ class AnimationController:
         return None
 
 
+def check_file_exists(filepath, description):
+    """Check if a file exists and print status"""
+    if os.path.exists(filepath):
+        print(f"✓ {description}: {os.path.basename(filepath)}")
+        return True
+    else:
+        print(f"✗ {description} NOT FOUND: {filepath}")
+        return False
+
+
+def load_vtk_file_safe(reader, filepath, description):
+    """Safely load a VTK file with error checking"""
+    if not check_file_exists(filepath, description):
+        return False
+
+    try:
+        reader.SetFileName(filepath)
+        reader.Update()
+
+        # Check if data was loaded
+        output = reader.GetOutput()
+        if output is None:
+            print(f"✗ Failed to read {description}")
+            return False
+        elif hasattr(output, 'GetNumberOfPoints') and output.GetNumberOfPoints() == 0:
+            print(f"✗ {description} contains no data points")
+            return False
+        else:
+            print(f"✓ Successfully loaded {description}")
+            return True
+    except Exception as e:
+        print(f"✗ Error loading {description}: {e}")
+        return False
+
+
 # Define file paths
-base_path = "E:/01_CasparSims/02Inline/Run_HP56/T01_4400n_320dp_100d/output/piston/vtk/"
+base_path = r"Z:\Studenten\Mit\Inline_Thesis-Simulation\V60N_inclined_pump\Run\Run1_Test_V60N\Run_V60N\V60N_S4_dp_350_n_4500_d_100\output\piston\vtk"
+print(f"Base directory: {base_path}")
+
+# Check if base directory exists
+if not os.path.exists(base_path):
+    print(f"✗ Base directory does not exist: {base_path}")
+    print("Please check the path and make sure it's accessible")
+    exit(1)
+else:
+    print(f"✓ Base directory exists")
+
+# List some files in the directory for debugging
+try:
+    files = os.listdir(base_path)
+    vtk_files = [f for f in files if f.endswith('.vtk')]
+    print(f"Found {len(vtk_files)} VTK files in directory")
+    if vtk_files:
+        print("Sample files:")
+        for i, f in enumerate(vtk_files[:5]):  # Show first 5 files
+            print(f"  - {f}")
+        if len(vtk_files) > 5:
+            print(f"  ... and {len(vtk_files) - 5} more files")
+except Exception as e:
+    print(f"Error listing directory contents: {e}")
+
+# Define specific file paths
+cylinder_file = os.path.join(base_path, "cylinder_th_rev_5.vtk")
+piston_file = os.path.join(base_path, "piston_th_rev_5.vtk")
+gap_sample_file = os.path.join(base_path, "piston_gap.2159.vtk")  # Test with frame 2159
+
+print("\nChecking required files...")
 
 # Create common lookup table for temperature (VTK 1 and VTK 2)
 temp_lut = vtk.vtkLookupTable()
-temp_lut.SetTableRange(40, 60)  # Temperature range from 40C to 60C
-temp_lut.SetHueRange(0.667, 0.0)  # Blue to red
-temp_lut.SetNumberOfColors(256)
+temp_lut.SetTableRange(40, 60)  # Temperature range from 40°C to 60°C
+temp_lut.SetNumberOfColors(256)  # High resolution for smooth gradient
+temp_lut.SetRampToLinear()  # Linear color interpolation
+
+# Manually define the color transition from Red -> Gray -> Blue
+color_transfer_function = vtk.vtkColorTransferFunction()
+color_transfer_function.AddRGBPoint(40, 1.0, 0.0, 0.0)  # Red at 40°C
+color_transfer_function.AddRGBPoint(50, 0.5, 0.5, 0.5)  # Gray at 50°C
+color_transfer_function.AddRGBPoint(60, 0.0, 0.0, 1.0)  # Blue at 60°C
+
+# Apply the transfer function to the lookup table
+for i in range(256):
+    t = 40 + (i / 255) * 20  # Normalize range from 40°C to 60°C
+    r, g, b = color_transfer_function.GetColor(t)
+    temp_lut.SetTableValue(i, r, g, b, 1.0)  # RGB + Alpha = 1.0 (Opaque)
+
 temp_lut.Build()
 
 # Create lookup table for pressure (VTK 3)
@@ -148,12 +226,14 @@ pressure_lut.SetNumberOfColors(256)
 pressure_lut.Build()
 
 # ====================== VTK 1 (Cylinder) ======================
-# Load the first VTK file (cylinder)
+print("\nLoading VTK 1 (Cylinder)...")
 reader1 = vtk.vtkUnstructuredGridReader()
 reader1.ReadAllScalarsOn()
 reader1.ReadAllFieldsOn()
-reader1.SetFileName(f"{base_path}cylinder_th_rev_5.vtk")
-reader1.Update()
+
+if not load_vtk_file_safe(reader1, cylinder_file, "Cylinder file"):
+    print("Cannot continue without cylinder file")
+    exit(1)
 
 # Convert cell data to point data for smoother coloring - this is key for smooth visualization
 cell_to_point1 = vtk.vtkCellDataToPointData()
@@ -194,12 +274,14 @@ actor1.SetMapper(mapper1)
 actor1.GetProperty().SetInterpolationToPhong()  # Smooth shading
 
 # ====================== VTK 2 (Piston) ======================
-# Load the second VTK file (piston)
+print("\nLoading VTK 2 (Piston)...")
 reader2 = vtk.vtkUnstructuredGridReader()
 reader2.ReadAllScalarsOn()
 reader2.ReadAllFieldsOn()
-reader2.SetFileName(f"{base_path}piston_th_rev_5.vtk")
-reader2.Update()
+
+if not load_vtk_file_safe(reader2, piston_file, "Piston file"):
+    print("Cannot continue without piston file")
+    exit(1)
 
 # Convert cell data to point data for smoother coloring
 cell_to_point2 = vtk.vtkCellDataToPointData()
@@ -229,10 +311,14 @@ actor2.GetProperty().SetOpacity(0.3)
 actor2.GetProperty().SetInterpolationToPhong()  # Smooth shading
 
 # ====================== VTK 3 (Gap Pressure) ======================
-# Load third VTK set (360 files, structured grid)
+print("\nLoading VTK 3 (Gap Pressure)...")
 reader3 = vtk.vtkDataSetReader()
 reader3.ReadAllScalarsOn()
 reader3.ReadAllFieldsOn()
+
+# Test with a sample gap file first
+if not load_vtk_file_safe(reader3, gap_sample_file, "Gap pressure sample file"):
+    print("Warning: Cannot load gap pressure files. Animation will work without pressure visualization.")
 
 # Create mapper
 mapper3 = vtk.vtkPolyDataMapper()
@@ -251,25 +337,35 @@ actor3.GetProperty().SetInterpolationToPhong()  # Smooth shading
 
 # Function to update the third VTK file based on angle
 def update_vtk_3(angle):
-    vtk_3_filename = f"{base_path}piston_gap.{2160- angle}.vtk"  # Updated for CLOCKWISE rotation
-    reader3.SetFileName(vtk_3_filename)
-    reader3.Update()
+    try:
+        # Map angle (0-359) to range 1800-2159
+        vtk_3_filename = os.path.join(base_path, f"piston_gap.{2159 - angle}.vtk")
 
-    # Use surface filter to get geometry
-    geometry_filter3 = vtk.vtkDataSetSurfaceFilter()
-    geometry_filter3.SetInputConnection(reader3.GetOutputPort())
-    geometry_filter3.Update()
+        if os.path.exists(vtk_3_filename):
+            reader3.SetFileName(vtk_3_filename)
+            reader3.Update()
 
-    mapper3.SetInputConnection(geometry_filter3.GetOutputPort())
+            # Use surface filter to get geometry
+            geometry_filter3 = vtk.vtkDataSetSurfaceFilter()
+            geometry_filter3.SetInputConnection(reader3.GetOutputPort())
+            geometry_filter3.Update()
 
-    # Apply the same transform as VTK 2
-    transform3 = vtk.vtkTransform()
-    transform3.Identity()
-    transform3.RotateZ(360 - angle)  # CLOCKWISE rotation (changed from angle)
-    transform3.Translate(0, 0.038252, 0)
-    transform3.RotateX(-5)
+            mapper3.SetInputConnection(geometry_filter3.GetOutputPort())
 
-    actor3.SetUserTransform(transform3)
+            # Apply transformation (adjust if necessary)
+            transform3 = vtk.vtkTransform()
+            transform3.Identity()
+
+            # transform3.RotateZ(360 - angle)  # Remove rotation
+            transform3.Translate(0, 0.04352, 0)
+            # transform3.RotateX(-5)
+
+            actor3.SetUserTransform(transform3)
+        else:
+            # print(f"Warning: Gap file not found for angle {angle}: {vtk_3_filename}")
+            pass  # Silent skip for missing files
+    except Exception as e:
+        print(f"Error updating VTK 3 for angle {angle}: {e}")
 
 
 # Add color bar actors for temperature and pressure
@@ -296,9 +392,10 @@ pressure_scalar_bar.SetHeight(0.05)
 pressure_scalar_bar.SetLabelFormat("%.1f")  # Set precision of labels
 
 # Add actors and configure rendering
+print("\nSetting up renderer...")
 renderer = vtk.vtkRenderer()
-# Use SetBackground with 3 arguments (RGB) instead of 4 (RGBA)
-renderer.SetBackground(0, 0, 0)  # Black background
+# Changed from black (0, 0, 0) to white (1, 1, 1) background
+renderer.SetBackground(1, 1, 1)  # White background
 
 render_window = vtk.vtkRenderWindow()
 render_window.AddRenderer(renderer)
@@ -313,8 +410,8 @@ render_window_interactor.SetRenderWindow(render_window)
 renderer.AddActor(actor1)
 renderer.AddActor(actor2)
 renderer.AddActor(actor3)  # Add third VTK file
-renderer.AddActor2D(temp_scalar_bar)  # Add temperature scale bar
-renderer.AddActor2D(pressure_scalar_bar)  # Add pressure scale bar
+renderer.AddViewProp(temp_scalar_bar)  # Use AddViewProp instead of deprecated AddActor2D
+renderer.AddViewProp(pressure_scalar_bar)  # Use AddViewProp instead of deprecated AddActor2D
 renderer.UseHiddenLineRemovalOn()
 
 bounds1 = actor1.GetBounds()
@@ -326,49 +423,82 @@ center = [
 ]
 
 camera = renderer.GetActiveCamera()
-camera.SetPosition(center[0] + 2, center[1] + 2, center[2] + 2)
-camera.SetFocalPoint(center[0], center[1], center[2])
-camera.SetViewUp(0, 0, 1)
+
+# Move the camera far along the X-axis, looking towards the YZ plane
+camera.SetPosition(center[0] - 10, center[1], center[2])  # Move camera to -X
+camera.SetFocalPoint(center[0], center[1], center[2])  # Focus on the center
+camera.SetViewUp(0, 0, 1)  # Keep Z as up
+
+# Force orthographic projection (makes it 2D)
+camera.ParallelProjectionOn()
+
+# Reset camera to apply changes
 renderer.ResetCamera()
+renderer.ResetCameraClippingRange()
 
 
 def animate_models(angle):
-    # Clockwise rotation for VTK 1
-    actor1.SetOrientation(0, 0, 0)
-    actor1.RotateZ(360 - angle)  # CLOCKWISE rotation (changed from angle)
-
     # Calculate displacement for piston movement
     displacement = (angle / 180.0) * 0.02 if angle <= 180 else ((360 - angle) / 180.0) * 0.02
 
     # Transform for VTK 2 (piston)
     transform = vtk.vtkTransform()
     transform.Identity()
-    transform.RotateZ(360 - angle)  # CLOCKWISE rotation (changed from angle)
-    transform.Translate(0, 0.0386, -displacement + 0.019)
-    transform.RotateX(-5)
+    # transform.RotateZ(360 - angle)  # CLOCKWISE rotation (changed from angle)
+    transform.Translate(0, 0.04395, -displacement + 0.019)
+    # transform.RotateX(-5)
 
     actor2.SetUserTransform(transform)
 
 
 # Create animation controller and set up interaction
+print("Setting up animation controller...")
 controller = AnimationController(render_window, animate_models, update_vtk_3)
 render_window_interactor.AddObserver(vtk.vtkCommand.TimerEvent, controller.timer_callback)
 
 # Initialize visualizer
+print("Initializing VTK window...")
 render_window_interactor.Initialize()
 render_window_interactor.CreateRepeatingTimer(50)
-render_window.Render()
 
 # Update VTK 3 with initial angle
+print("Loading initial frame...")
 update_vtk_3(0)
 
+# Initial render
+render_window.Render()
+
+print("\n" + "=" * 50)
+print("VTK Animation Ready!")
+print("=" * 50)
 print("Controls:")
 print("- Press 'Space' to toggle play/pause")
 print("- Press 'E' to export animation as MP4 (10 seconds) and MOV (with transparency)")
+print("- Close the window or press Ctrl+C to exit")
+print("=" * 50)
+
 
 # Set up key bindings
-render_window_interactor.AddObserver("KeyPressEvent", lambda obj,
-                                                             event: controller.export_video() if obj.GetKeySym() == "e" else controller.toggle_play_pause())
+def key_press_event(obj, event):
+    key = obj.GetKeySym().lower()
+    if key == "e":
+        controller.export_video()
+    elif key == "space":
+        controller.toggle_play_pause()
+    elif key == "escape" or key == "q":
+        print("Exiting...")
+        render_window_interactor.ExitCallback()
+
+
+render_window_interactor.AddObserver("KeyPressEvent", key_press_event)
 
 # Start the interactor
-render_window_interactor.Start()
+print("Starting VTK interactor...")
+try:
+    render_window_interactor.Start()
+except KeyboardInterrupt:
+    print("\nExiting...")
+except Exception as e:
+    print(f"Error during interaction: {e}")
+
+print("VTK session ended.")

@@ -1,0 +1,183 @@
+﻿// ------------------------------------------------------------------------- //
+// FSTI GAP DESIGN options_piston input file
+// ------------------------------------------------------------------------- //
+
+section general
+	// If this option is selected, a previously generated pressure profile will be used in the piston/cylinder interface simulation.  Default: Selected.
+	ReadpFile	1
+
+	// Solve Reynolds equation using MultiGrid - This option uses the MultiGrid method to improve the FVM solution of the fluid gap. Otherwise, a fixed grid definition is used. Default: Selected
+	ReynoldsMultiGrid	1
+
+	// Solve energy equation in the gap. Default: Selected
+	EnergyEquation	1
+
+	// Considers heat transfer from the fluid gap (piston-cylinder lubrication interface) to solid bodies. Default: Selected
+	HeatTransfer	1
+
+	// Considers deformation of the solid bodies due to pressure effects. Default: Selected
+	PressureDeformation	1
+
+	// Gives location of the previously generated Influence Matrices (IM) for the piston
+	IM_piston_path	Z:\Studenten\Mit\HSP\IM\pistoncylinder\IM_piston
+
+	// Gives location of the IM generated from the pressure mesh of the cylinder for the cylinder-piston interface
+	IM_bushing_path	Z:\Studenten\Mit\HSP\IM\pistoncylinder\IM_bushing_without_grooves
+
+	// Number of processor cores to use for Piston/Cylinder pressure deformation. (Entering 0 will use all available cores.) Default: 1
+	PressureDeformationOMP	0
+
+	// Solves for solid body deformation due to thermal stresses. Default: Selected
+	ThermalDeformation	1
+
+	// Piston Macrogeometry ( 0 - Cylindrical Piston; 1 - Stepwise Piston; 2 - Half Spherical Piston; 3 - Spherical Piston; 4 - Polynomial Piston )
+	McrK	0
+
+	// Piston Macrogeometry Path (Provide a file path to the location of the macrogeometry file for the piston. Required for the Stepwise Piston and Polynomial Piston type.)
+	McrK_file	
+
+	// Bushing Macrogeometry ( 0 - Cylindrical Bushing; 1 - Stepwise Bushing; 2 - 2D Bushing )
+	McrB	0
+
+	// Bushing Macrogeometry Path (Provide a file path to the location of the macrogeometry file for the bushing. Required for the Stepwise Bushing type only.)
+	McrB_file
+
+	zeta	5	
+
+endsection
+
+section numeric
+	// Newton Zero Finding Tolerance - [-]
+	epsilonK	0.01
+
+	// Newton Inner Loop Max Count - [-]
+	jmax	10
+
+	// Newton Outer Loop Max Count - [-]
+	kmax	20
+
+	// Newton Delta Squeeze Velocity - [m/s]
+	delta_v	1e-6
+
+	// Damping Coefficient Pressure - [-]
+	AlphaP	0.2
+
+	// Damping Coefficient Deformation - [-]
+	AlphaDef	0.2
+
+	// Damping Coefficient Viscosity - [-]
+	AlphaMu	0.2
+
+	// Damping Coefficient Thermal - [-]
+	AlphaTh	0.2
+
+	// Minimum Fluid Residual - [-]
+	Rmin_p	1e-4
+
+	// Minimum Structure Residual - [-]
+	Rmin_h	1e-4
+
+	// Maximum Iterations Number [-]
+	nmax	500
+
+	// Minimum Reynolds Equation Residual - [-]
+	Rmin_R	1e-9
+
+	// Minimum Energy Equation Residual - [-]
+	Rmin_E	1e-6
+
+	// Simulation Maximum Step Size - [deg]
+	Simalphastep	0.25
+
+	// 2D & 3D data output interval - [deg]
+	Simalphaplot	1.0
+
+	// Piston elastic modulus - [Pa]
+	EmodK	210.0e9
+
+	// Piston Poisson ratio - [-]
+	vK	0.27
+
+	// Cylinder elastic modulus - [Pa]
+	EmodB	130.0e9
+
+	// Cylinder Poisson ratio - [-]
+	vB	0.32
+
+	// Minimum Gap Height - [microns]
+	hmin	0.1
+
+	// Estimate Maximum Gap Temperature - [°C]
+	Tmax	70.0
+
+	// Convection Coefficient Displacement Chamber - [W/m^2°C]
+	AlphaDC	3.0e3
+
+	// Convection Coefficient Case - [W/m^2°C]
+	AlphaCase	2.0e3
+
+	// Groove on piston or bushing? 1: piston linear; 2: bushing linear; 3:piston constant; 4:bushing constant
+	cgv	0
+
+	// Distance between the first groove and the starting point of the end of the piston closer to DC - [m]
+	pgv	0
+
+	// Width of the groove - [m]
+	wgv	0
+
+endsection
+
+section position
+	// Starting Piston Position Vector xA - This parameter is used to give the piston an initial tilt in its cylinder bore. That is, the user can use this input along with the other three inputs under the “Position” tab to specify how the piston’s central axis is tilted with respect to the central axis of the corresponding cylinder bore. xA is the distance along the x-axis from the piston’s central axis to the bore’s central axis, measured in Plane A. xA>0 if the point of intersection of the piston’s central axis with Plane A is to the right of (further in the positive x-direction than) the point of intersection of the bore’s central axis with Plane A.
+	xA	0
+
+	// Starting Piston Position Vector yA - This parameter is used to give the piston an initial tilt in its cylinder bore. That is, the user can use this input along with the other three inputs under the “Position” tab to specify how the piston’s central axis is tilted with respect to the central axis of the corresponding cylinder bore. yA is the distance along the y-axis from the piston’s central axis to the bore’s central axis, measured in Plane A. yA>0 if the point of intersection of the piston’s central axis with Plane A is above (further in the positive y-direction than) the point of intersection of the bore’s central axis with Plane A.
+	yA	0
+
+	// Starting Piston Position Vector xB - This parameter is used to give the piston an initial tilt in its cylinder bore. That is, the user can use this input along with the other three inputs under the “Position” tab to specify how the piston’s central axis is tilted with respect to the central axis of the corresponding cylinder bore. xB is the distance along the x-axis from the piston’s central axis to the bore’s central axis, measured in Plane B. xB>0 if the point of intersection of the piston’s central axis with Plane B is to the right of (further in the positive x-direction than) the point of intersection of the bore’s central axis with Plane B.
+	xB	0
+
+	// Starting Piston Position Vector yB - This parameter is used to give the piston an initial tilt in its cylinder bore. That is, the user can use this input along with the other three inputs under the “Position” tab to specify how the piston’s central axis is tilted with respect to the central axis of the corresponding cylinder bore. yB is the distance along the y-axis from the piston’s central axis to the bore’s central axis, measured in Plane B. yB>0 if the point of intersection of the piston’s central axis with Plane B is above (further in the positive y-direction than) the point of intersection of the bore’s central axis with Plane B.
+	yB	0
+
+endsection
+
+section fluidgrid_GS
+	// Volumes in fluid film circumference - Indicates the number of fluid cells defined in the gap circumferential direction.
+	N	70
+
+	// Volumes in fluid film length - Indicates the number of fluid cells defined in the gap length direction.
+	M	50
+
+	// Volumes in fluid film height - Indicates the number of fluid cells defined in the gap height direction.
+	Q	20
+
+endsection
+
+section fluidgrid_GMG
+	// Indicates the number of mesh level definitions to be manually provided with varying resolution. Set this to zero if you would like FSTI to automatically generate the multigrid levels.
+	nL	0
+
+	// The number of volumes in the fluid film circumference. There are two options: 1. The user sets nL to zero, and specifies the number of volumes in the fluid film circumference of the finest mesh. FSTI will then automatically calculate the number of volumes needed for the coarser meshes of the multigrid method. 2. nL is set to a number greater than zero, and the user enters the number of volumes in the fluid film circumference for each level, from finest to coarsest, separated by a comma. Minimum number of levels in this case: 2
+	MG_N	70
+
+	// The number of volumes in the fluid film length. There are two options: 1. The user sets nL to zero, and specifies the number of volumes in the fluid film length of the finest mesh. FSTI will then automatically calculate the number of volumes needed for the coarser meshes of the multigrid method. 2. nL is set to a number greater than zero, and the user enters the number of volumes in the fluid film length for each level, from finest to coarsest, separated by a comma. Minimum number of levels in this case: 2
+	MG_M	50
+
+	// Volumes in fluid film height, used for all levels.
+	Q	20
+
+	// Type of Cycle: 0 for V-Cycle; 1 for W-Cycle. Defines the path followed by the MultiGrid algorithm as it changes the resolution of the fluid grid. V-Cycle is faster but W-Cycle offers improved convergence. Default: V
+	VW	0
+
+	// Type of Prolongation: 0 for Standard; 1 for Bilinear. Indicates the method to be used for interpolating variables between different mesh resolutions. Standard uses nearest neighbor search (faster) and Bilinear uses bilinear interpolation (better quality). Default: Bilinear
+	MGInt	1
+
+	// Number of GS Sweeps Down-Leg - Indicates number of times a Gauss-Seidel solution is computed during each step of the Down-Leg (mesh becomes coarser). Default: 1
+	v1	1
+
+	// Number of GS Sweeps Up-Leg - Indicates number of times a Gauss-Seidel solution is computed during each step of the Up-Leg (mesh becomes finer). Default: 2
+	v2	2
+
+endsection
+

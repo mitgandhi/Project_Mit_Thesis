@@ -1,0 +1,118 @@
+﻿// ------------------------------------------------------------------------- //
+// FSTI GAP DESIGN options_block input file
+// ------------------------------------------------------------------------- //
+
+section general
+	// Simulation step angle
+	step_angle	1.0
+
+	// Activate/Deactivate the elasto-hydrodynamic deformation on the cylinder block side. Default: Selected
+	EHD_CB	1
+
+	// Select the path to the cylinder block influence matrices, i.e. ./pathIMCB
+	IM_CB	E:\sims\IM_S4\blockvalveplate\IM_block
+
+	// Activate/Deactivate the elasto-hydrodynamic deformation on the valve plate side. Default: Selected
+	EHD_VP	1
+
+	// Select the path to the valve plate influence matrices, i.e. /pathIMVP
+	IM_VP	E:\sims\IM_S4\blockvalveplate\IM_VP_with_endcase_shared
+
+	// Activate/Deactivate the Thermal analysis on the cylinder block side
+	Thermal_CB	1
+
+	// Activate/Deactivate the Thermal analysis on the valve plate side
+	Thermal_VP	1
+
+	// Start the simulation with the thermal analysis
+	StartWithTH	1
+
+	// Enable macro geometry on valve plate 0: Disable  1: Axisymmetric profile (repeated in circumferential direction) 2: Circumferential waved pattern 3: Spherical surface (the spherical diameter can be different from the nominal one) 6: Direct fluid grid modification (specify m n h)
+	macro_VP	0
+
+	// Enable macro geometry on cylinder block 0: Disable  1: Axisymmetric profile (repeated in circumferential direction) 2: Circumferential waved pattern 3: Spherical surface (the spherical diameter can be different from the nominal one) 6: Direct fluid grid modification (specify m n h)
+	macro_CB	0
+
+	// Write residual vs iterations in a text file for each FSI solution
+	EHD_loop_debug	0
+
+	// Print a vtk file (light version) for each time step
+	dense_vtk_out_light	1
+
+	// Print a vtk file (full version) for each time step
+	dense_vtk_out	0
+
+endsection
+
+section numeric
+	// Minimum film thickness
+	hmin	0.2
+
+	// Enable or disable correction to shifting velocities during possible contact conditions 0: Disabled 1: Enabled
+	contact	1
+
+	// This sets the minimum value of heat flux from the gap to the solid bodies.
+	q_min_limit	0
+
+	// This sets the maximum value of heat flux from the gap to the solid bodies.
+	q_max_limit	350e3
+
+	// Newton zero finding tolerance - [-]
+	epsilonB	0.01
+
+	// Newton Delta squeeze velocity - [m/s]
+	delta_v	1e-6
+
+	// Use the additional FSI squeeze when solving the Reynolds equation during the force balance
+	use_fsi_fb	1
+
+	// Max number of iterations
+	FEM_maxIters	1000
+
+	// Solver tolerance
+	FEM_tolerance	1e-6
+
+	// Relaxation factor used for the cylinder block thermal analysis
+	relax_CB	0.6
+
+	// Relaxation factor used for the valve plate thermal analysis
+	relax_VP	0.6
+
+	// Consider squeeze due to change in hydrostatic deformations. (due to change in pressure in the DC or valve plate ports over time)
+	use_sqz_hs	1
+
+	// Consider squeeze due to change in hydrodynamic pressure field in the gap.
+	use_sqz_hd	1
+
+endsection
+
+section position
+	// hB1
+	hB1	1.5
+
+	// hB2
+	hB2	1.5
+
+	// hB3
+	hB3	1	5
+
+endsection
+
+section fluidgrid
+	// Indicates the number of fluid cells defined in the gap circumferential direction
+	N	360
+
+	// Indicates the number of fluid cells defined in the gap radial direction
+	M	80
+
+	// Indicates the number of fluid cells defined in the gap height direction
+	Q	20
+
+	// Select the path to the file used to define the cylinder block gap surface. i.e. /input/block/blockgap.stl. The cylinder block gap surface has to be defined through an STL file (in ASCII format).
+	stl_cb	E:\sims\IM_S4\blockvalveplate\block\CB_S4_stl.stl
+
+	// Select the path to the file used to define the valve plate gap surface. i.e. /input/block/valveplategap.stl. The valve plate gap surface has to be defined through an STL file (in ASCII format).
+	stl_vp	E:\sims\IM_S4\blockvalveplate\block\S4_VP1.stl
+
+endsection
+

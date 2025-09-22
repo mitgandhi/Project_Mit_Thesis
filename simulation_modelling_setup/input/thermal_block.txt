@@ -1,0 +1,99 @@
+// ------------------------- general informations -------------------------- //
+
+section general
+
+// mesh file
+meshFile	Z:\Studenten\Mit\HSP\IM\pistoncylinder\thermal\block_th.inp
+// inertial relief option: 1->active, 0->not active
+IR		1
+// max number of iterations for the linear solver
+maxIters		2000
+// solver tolerance
+tolerance		1E-06
+
+
+endsection
+
+// -------------------------- Volume sets ---------------------------------- //
+// list of volume set and associated material name (located in materials.txt)
+
+section materials
+bushing    BU_bronze
+block    CB_steel
+
+endsection
+
+// -------------------------- Boundaries ---------------------------------- //
+
+section boundary
+
+type    mixed
+set     DC
+Tinf      46.9	// [C]
+h      5072	// [W/Km^2]
+
+
+endsection
+
+section boundary
+
+type    mixed
+set     case_outer
+Tinf      58.97	// [C]
+h      4989	// [W/Km^2]
+
+
+endsection
+
+section boundary
+
+type    mixed
+set     case_inner
+Tinf      58.97	// [C]
+h      4431	// [W/Km^2]
+
+
+endsection
+
+section boundary
+
+type    mixed
+set     case_bottom
+Tinf      58.97	// [C]
+h      1668	// [W/Km^2]
+
+
+endsection
+
+section boundary
+
+type    mixed
+set     case_top
+Tinf      58.97	// [C]
+h      2300	// [W/Km^2]
+
+
+endsection
+
+section boundary
+
+type    mixed
+set     xyz_const
+Tinf      44.5	// [C]
+h      5000	// [W/Km^2]
+
+
+endsection
+
+section boundary
+
+type    mixed
+set     case_stationary
+Tinf      58.97	// [C]
+h      1000	// [W/Km^2]
+
+
+endsection
+
+// -------------------------- Constraints ---------------------------------- //
+

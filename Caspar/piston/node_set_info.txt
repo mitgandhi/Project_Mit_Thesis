@@ -1,0 +1,22 @@
+Node Set Information:
+==============================
+Node Set: Gap
+Number of Nodes: 6222
+Node IDs: 4222 to 10697
+------------------------------
+Node Set: DC
+Number of Nodes: 4592
+Node IDs: 2 to 10727
+------------------------------
+Node Set: Case
+Number of Nodes: 1071
+Node IDs: 4564 to 12129
+------------------------------
+Node Set: socket0
+Number of Nodes: 511
+Node IDs: 10933 to 12336
+------------------------------
+Node Set: socket1
+Number of Nodes: 660
+Node IDs: 10699 to 12745
+------------------------------
