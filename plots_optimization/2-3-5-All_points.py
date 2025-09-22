@@ -14,15 +14,32 @@ import numpy as np
 import os
 import time
 
-# Import all functions from T1 (assuming they exist)
-import sys
-
-sys.path.append('..')  # Add current directory to path
-from T1 import (
-    load_matlab_txt, round2, parse_geometry, parse_operating_conditions,
-    create_cumulative_pressure_map, collect_simulation_data,
-    create_comparison_plots, create_overall_summary, run_contact_pressure_analysis
-)
+# Import helper functions from the neighbouring T1 module while keeping
+# compatibility with running this script directly.
+try:
+    from .T1 import (
+        load_matlab_txt,
+        round2,
+        parse_geometry,
+        parse_operating_conditions,
+        create_cumulative_pressure_map,
+        collect_simulation_data,
+        create_comparison_plots,
+        create_overall_summary,
+        run_contact_pressure_analysis,
+    )
+except (ImportError, ValueError):
+    from T1 import (  # type: ignore
+        load_matlab_txt,
+        round2,
+        parse_geometry,
+        parse_operating_conditions,
+        create_cumulative_pressure_map,
+        collect_simulation_data,
+        create_comparison_plots,
+        create_overall_summary,
+        run_contact_pressure_analysis,
+    )
 
 # --- Regex Patterns for Folder Name Parsing ---
 PARAM_PATTERN_NEW = re.compile(
