@@ -1,0 +1,6 @@
+ & "C:\Users\Administrator\AppData\Local\Programs\Python\Python312\python.exe" image_to_video.py --input "folder" --output "my_video.mp4" --fps 5
+
+
+Sample inputs
+ "folder" ="Z:\Studenten\Mit\Inline_Thesis-Simulation\HSP\RUN\Run7_ReDimension_L57\T02_4400n_380dp_100d\output\piston\Plots\Multiplot"
+ No. of frames per second = --fps 5

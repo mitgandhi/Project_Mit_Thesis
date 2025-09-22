@@ -1,0 +1,28 @@
+================================================================================
+PARALLEL BATCH ANALYSIS SUMMARY REPORT
+================================================================================
+
+Analysis Date: 2025-07-21 23:30:20
+CPU Cores Used: 24
+Total Base Folders: 2
+Total Simulation Runs: 12
+
+COLOR SCALING CONFIGURATION:
+----------------------------------------
+Global Minimum: 0.000000e+00
+Global Maximum: 1.000000e+06
+Consistent color scaling applied to all heatmaps
+
+BASE FOLDERS PROCESSED:
+----------------------------------------
+1. V32HL Industrial Design: Z:\Studenten\Mit\Inline_Thesis-Simulation\HSP\RUN\Run6_ReDimensions\T05_variable speed_ speedK_1
+2. V32HL 2-Parameter: Z:\Studenten\Mit\Inline_Thesis-Simulation\HSP\RUN\Run12_Optimal_value\2_para
+
+PROCESSING RESULTS:
+----------------------------------------
+Successful runs: 12
+Failed runs: 0
+Success rate: 100.0%
+
+SUCCESSFUL RUNS DETAILS:
+----------------------------------------

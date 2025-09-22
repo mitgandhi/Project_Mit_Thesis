@@ -1,0 +1,2 @@
+Run,Total_Simulations,Valid_Simulations,Valid_Pressure_Data,Min_Total_Loss,Mean_Total_Loss,Std_Total_Loss,Min_Penalized_Loss,Mean_Penalized_Loss,Min_Contact_Pressure,Max_Contact_Pressure,Mean_Contact_Pressure,Mean_Penalty_Percent,Max_Penalty_Percent,Mean_Clearance,Std_Clearance,Min_Clearance,Max_Clearance
+Generation-NSGA-III,2635,2622,148,13.908935998,1548.1319925484863,1844.4385190494465,13.908935998,1548.5353284141008,0.0,22.9245932,0.21059653380282226,0.4211930676056445,45.8491864,0.030620137299771234,0.01356355813955257,0.010000000000001563,0.09999999999999787

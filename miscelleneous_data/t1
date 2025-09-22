@@ -1,0 +1,200 @@
+{
+  "common_files": {
+    "Air.txt": {
+      "file_x": "Z:\\Studenten\\Mit\\Inline_Thesis-Simulation\\HSP\\RUN\\standard_design\\standard_design\\4000\\input\\Air.txt",
+      "file_y": "Z:\\Studenten\\Mit\\Inline_Thesis-Simulation\\HSP\\RUN\\standard_design\\optimal_nsga_3_para_dK_lKG_LF\\4000\\input\\Air.txt",
+      "differences": [],
+      "total_differences": 0
+    },
+    "Area.txt": {
+      "file_x": "Z:\\Studenten\\Mit\\Inline_Thesis-Simulation\\HSP\\RUN\\standard_design\\standard_design\\4000\\input\\Area.txt",
+      "file_y": "Z:\\Studenten\\Mit\\Inline_Thesis-Simulation\\HSP\\RUN\\standard_design\\optimal_nsga_3_para_dK_lKG_LF\\4000\\input\\Area.txt",
+      "differences": [],
+      "total_differences": 0
+    },
+    "geometry.txt": {
+      "file_x": "Z:\\Studenten\\Mit\\Inline_Thesis-Simulation\\HSP\\RUN\\standard_design\\standard_design\\4000\\input\\geometry.txt",
+      "file_y": "Z:\\Studenten\\Mit\\Inline_Thesis-Simulation\\HSP\\RUN\\standard_design\\optimal_nsga_3_para_dK_lKG_LF\\4000\\input\\geometry.txt",
+      "differences": [
+        {
+          "type": "value_difference",
+          "section": "geometry",
+          "parameter": "dK",
+          "value_x": 19.468,
+          "value_y": 19.4517,
+          "original_x": "19.468",
+          "original_y": "19.4517",
+          "description": "Different values: X='19.468', Y='19.4517'"
+        },
+        {
+          "type": "value_difference",
+          "section": "geometry",
+          "parameter": "lF",
+          "value_x": 32.3,
+          "value_y": 33.7825,
+          "original_x": "32.3",
+          "original_y": "33.7825",
+          "description": "Different values: X='32.3', Y='33.7825'"
+        },
+        {
+          "type": "value_difference",
+          "section": "geometry",
+          "parameter": "lKG",
+          "value_x": 51.62,
+          "value_y": 51.687597,
+          "original_x": "51.62",
+          "original_y": "51.687597",
+          "description": "Different values: X='51.62', Y='51.687597'"
+        },
+        {
+          "type": "value_difference",
+          "section": "geometry",
+          "parameter": "lSK",
+          "value_x": 14.02216,
+          "value_y": 14.162,
+          "original_x": "14.02216",
+          "original_y": "14.162",
+          "description": "Different values: X='14.02216', Y='14.162'"
+        },
+        {
+          "type": "value_difference",
+          "section": "geometry",
+          "parameter": "lZ0",
+          "value_x": 21.49,
+          "value_y": 20.418,
+          "original_x": "21.49",
+          "original_y": "20.418",
+          "description": "Different values: X='21.49', Y='20.418'"
+        }
+      ],
+      "total_differences": 5
+    },
+    "lubrication_module.txt": {
+      "file_x": "Z:\\Studenten\\Mit\\Inline_Thesis-Simulation\\HSP\\RUN\\standard_design\\standard_design\\4000\\input\\lubrication_module.txt",
+      "file_y": "Z:\\Studenten\\Mit\\Inline_Thesis-Simulation\\HSP\\RUN\\standard_design\\optimal_nsga_3_para_dK_lKG_LF\\4000\\input\\lubrication_module.txt",
+      "differences": [],
+      "total_differences": 0
+    },
+    "materials.txt": {
+      "file_x": "Z:\\Studenten\\Mit\\Inline_Thesis-Simulation\\HSP\\RUN\\standard_design\\standard_design\\4000\\input\\materials.txt",
+      "file_y": "Z:\\Studenten\\Mit\\Inline_Thesis-Simulation\\HSP\\RUN\\standard_design\\optimal_nsga_3_para_dK_lKG_LF\\4000\\input\\materials.txt",
+      "differences": [],
+      "total_differences": 0
+    },
+    "oil.txt": {
+      "file_x": "Z:\\Studenten\\Mit\\Inline_Thesis-Simulation\\HSP\\RUN\\standard_design\\standard_design\\4000\\input\\oil.txt",
+      "file_y": "Z:\\Studenten\\Mit\\Inline_Thesis-Simulation\\HSP\\RUN\\standard_design\\optimal_nsga_3_para_dK_lKG_LF\\4000\\input\\oil.txt",
+      "differences": [],
+      "total_differences": 0
+    },
+    "operatingconditions.txt": {
+      "file_x": "Z:\\Studenten\\Mit\\Inline_Thesis-Simulation\\HSP\\RUN\\standard_design\\standard_design\\4000\\input\\operatingconditions.txt",
+      "file_y": "Z:\\Studenten\\Mit\\Inline_Thesis-Simulation\\HSP\\RUN\\standard_design\\optimal_nsga_3_para_dK_lKG_LF\\4000\\input\\operatingconditions.txt",
+      "differences": [],
+      "total_differences": 0
+    },
+    "options_block.txt": {
+      "file_x": "Z:\\Studenten\\Mit\\Inline_Thesis-Simulation\\HSP\\RUN\\standard_design\\standard_design\\4000\\input\\options_block.txt",
+      "file_y": "Z:\\Studenten\\Mit\\Inline_Thesis-Simulation\\HSP\\RUN\\standard_design\\optimal_nsga_3_para_dK_lKG_LF\\4000\\input\\options_block.txt",
+      "differences": [],
+      "total_differences": 0
+    },
+    "options_piston.txt": {
+      "file_x": "Z:\\Studenten\\Mit\\Inline_Thesis-Simulation\\HSP\\RUN\\standard_design\\standard_design\\4000\\input\\options_piston.txt",
+      "file_y": "Z:\\Studenten\\Mit\\Inline_Thesis-Simulation\\HSP\\RUN\\standard_design\\optimal_nsga_3_para_dK_lKG_LF\\4000\\input\\options_piston.txt",
+      "differences": [
+        {
+          "type": "value_difference",
+          "section": "general",
+          "parameter": "IM_piston_path",
+          "value_x": "Z:\\Studenten\\Mit\\HSP\\IM\\pistoncylinder\\IM_piston",
+          "value_y": "Z:\\Studenten\\Mit\\HSP\\IM\\pistoncylinder\\IM_piston_optimal",
+          "original_x": "Z:\\Studenten\\Mit\\HSP\\IM\\pistoncylinder\\IM_piston",
+          "original_y": "Z:\\Studenten\\Mit\\HSP\\IM\\pistoncylinder\\IM_piston_optimal",
+          "description": "Different values: X='Z:\\Studenten\\Mit\\HSP\\IM\\pistoncylinder\\IM_piston', Y='Z:\\Studenten\\Mit\\HSP\\IM\\pistoncylinder\\IM_piston_optimal'"
+        },
+        {
+          "type": "value_difference",
+          "section": "general",
+          "parameter": "zeta",
+          "value_x": 5,
+          "value_y": 4,
+          "original_x": "5",
+          "original_y": "4",
+          "description": "Different values: X='5', Y='4'"
+        }
+      ],
+      "total_differences": 2
+    },
+    "options_slipper.txt": {
+      "file_x": "Z:\\Studenten\\Mit\\Inline_Thesis-Simulation\\HSP\\RUN\\standard_design\\standard_design\\4000\\input\\options_slipper.txt",
+      "file_y": "Z:\\Studenten\\Mit\\Inline_Thesis-Simulation\\HSP\\RUN\\standard_design\\optimal_nsga_3_para_dK_lKG_LF\\4000\\input\\options_slipper.txt",
+      "differences": [],
+      "total_differences": 0
+    },
+    "p_module.txt": {
+      "file_x": "Z:\\Studenten\\Mit\\Inline_Thesis-Simulation\\HSP\\RUN\\standard_design\\standard_design\\4000\\input\\p_module.txt",
+      "file_y": "Z:\\Studenten\\Mit\\Inline_Thesis-Simulation\\HSP\\RUN\\standard_design\\optimal_nsga_3_para_dK_lKG_LF\\4000\\input\\p_module.txt",
+      "differences": [],
+      "total_differences": 0
+    },
+    "pfile.txt": {
+      "file_x": "Z:\\Studenten\\Mit\\Inline_Thesis-Simulation\\HSP\\RUN\\standard_design\\standard_design\\4000\\input\\pfile.txt",
+      "file_y": "Z:\\Studenten\\Mit\\Inline_Thesis-Simulation\\HSP\\RUN\\standard_design\\optimal_nsga_3_para_dK_lKG_LF\\4000\\input\\pfile.txt",
+      "differences": [],
+      "total_differences": 0
+    },
+    "thermal_block.txt": {
+      "file_x": "Z:\\Studenten\\Mit\\Inline_Thesis-Simulation\\HSP\\RUN\\standard_design\\standard_design\\4000\\input\\thermal_block.txt",
+      "file_y": "Z:\\Studenten\\Mit\\Inline_Thesis-Simulation\\HSP\\RUN\\standard_design\\optimal_nsga_3_para_dK_lKG_LF\\4000\\input\\thermal_block.txt",
+      "differences": [],
+      "total_differences": 0
+    },
+    "thermal_piston.txt": {
+      "file_x": "Z:\\Studenten\\Mit\\Inline_Thesis-Simulation\\HSP\\RUN\\standard_design\\standard_design\\4000\\input\\thermal_piston.txt",
+      "file_y": "Z:\\Studenten\\Mit\\Inline_Thesis-Simulation\\HSP\\RUN\\standard_design\\optimal_nsga_3_para_dK_lKG_LF\\4000\\input\\thermal_piston.txt",
+      "differences": [
+        {
+          "type": "value_difference",
+          "section": "general",
+          "parameter": "meshFile",
+          "value_x": "Z:\\Studenten\\Mit\\HSP\\IM\\pistoncylinder\\thermal\\piston_th.inp",
+          "value_y": "Z:\\Studenten\\Mit\\HSP\\IM\\pistoncylinder\\thermal\\piston_th_optimal.inp",
+          "original_x": "Z:\\Studenten\\Mit\\HSP\\IM\\pistoncylinder\\thermal\\piston_th.inp",
+          "original_y": "Z:\\Studenten\\Mit\\HSP\\IM\\pistoncylinder\\thermal\\piston_th_optimal.inp",
+          "description": "Different values: X='Z:\\Studenten\\Mit\\HSP\\IM\\pistoncylinder\\thermal\\piston_th.inp', Y='Z:\\Studenten\\Mit\\HSP\\IM\\pistoncylinder\\thermal\\piston_th_optimal.inp'"
+        }
+      ],
+      "total_differences": 1
+    },
+    "thermal_slipper.txt": {
+      "file_x": "Z:\\Studenten\\Mit\\Inline_Thesis-Simulation\\HSP\\RUN\\standard_design\\standard_design\\4000\\input\\thermal_slipper.txt",
+      "file_y": "Z:\\Studenten\\Mit\\Inline_Thesis-Simulation\\HSP\\RUN\\standard_design\\optimal_nsga_3_para_dK_lKG_LF\\4000\\input\\thermal_slipper.txt",
+      "differences": [],
+      "total_differences": 0
+    },
+    "thermal_swashplate.txt": {
+      "file_x": "Z:\\Studenten\\Mit\\Inline_Thesis-Simulation\\HSP\\RUN\\standard_design\\standard_design\\4000\\input\\thermal_swashplate.txt",
+      "file_y": "Z:\\Studenten\\Mit\\Inline_Thesis-Simulation\\HSP\\RUN\\standard_design\\optimal_nsga_3_para_dK_lKG_LF\\4000\\input\\thermal_swashplate.txt",
+      "differences": [],
+      "total_differences": 0
+    },
+    "thermal_valveplate.txt": {
+      "file_x": "Z:\\Studenten\\Mit\\Inline_Thesis-Simulation\\HSP\\RUN\\standard_design\\standard_design\\4000\\input\\thermal_valveplate.txt",
+      "file_y": "Z:\\Studenten\\Mit\\Inline_Thesis-Simulation\\HSP\\RUN\\standard_design\\optimal_nsga_3_para_dK_lKG_LF\\4000\\input\\thermal_valveplate.txt",
+      "differences": [],
+      "total_differences": 0
+    }
+  },
+  "only_in_x": [],
+  "only_in_y": [],
+  "summary": {
+    "total_files_compared": 17,
+    "files_with_differences": 3,
+    "files_identical": 14,
+    "total_differences": 8,
+    "difference_types": {
+      "value_difference": 8
+    }
+  }
+}
