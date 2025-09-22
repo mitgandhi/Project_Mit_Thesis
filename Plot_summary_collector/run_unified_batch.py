@@ -6,9 +6,14 @@ import matplotlib.pyplot as plt
 import csv
 import shutil
 from scipy.io import loadmat
-from unified_piston_plots import generate_piston_plots
-from contact_pressure_superimposed import create_cumulative_pressure_map
-from contact_pressure_cummulative_grid import piston_contact_pressure
+try:
+    from .unified_piston_plots import generate_piston_plots
+    from .contact_pressure_superimposed import create_cumulative_pressure_map
+    from .contact_pressure_cummulative_grid import piston_contact_pressure
+except (ImportError, ValueError):
+    from unified_piston_plots import generate_piston_plots  # type: ignore
+    from contact_pressure_superimposed import create_cumulative_pressure_map  # type: ignore
+    from contact_pressure_cummulative_grid import piston_contact_pressure  # type: ignore
 import multiprocessing as mp
 from multiprocessing import cpu_count
 import time

@@ -609,18 +609,28 @@ import numpy as np
 import matplotlib.pyplot as plt
 import re
 import sys
+from pathlib import Path
 
 # Ensure matplotlib backend is set
 import matplotlib
 matplotlib.use('TkAgg')
 
 # Import all functions from T1 for contact pressure analysis
-sys.path.append('..')  # Add current directory to path
+REPO_ROOT = Path(__file__).resolve().parents[1]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.append(str(REPO_ROOT))
+
 try:
     from plots_optimization.T1 import (
-        load_matlab_txt, round2, parse_geometry, parse_operating_conditions,
-        create_cumulative_pressure_map, collect_simulation_data,
-        create_comparison_plots, create_overall_summary, run_contact_pressure_analysis
+        load_matlab_txt,
+        round2,
+        parse_geometry,
+        parse_operating_conditions,
+        create_cumulative_pressure_map,
+        collect_simulation_data,
+        create_comparison_plots,
+        create_overall_summary,
+        run_contact_pressure_analysis,
     )
 except ImportError:
     print("Warning: T1 module not found. Contact pressure analysis will use fallback methods.")

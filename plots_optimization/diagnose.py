@@ -8,15 +8,32 @@ import numpy as np
 from scipy.stats import pearsonr
 import os
 
-# Import all functions from T1
-import sys
-
-sys.path.append('..')  # Add current directory to path
-from T1 import (
-    load_matlab_txt, round2, parse_geometry, parse_operating_conditions,
-    create_cumulative_pressure_map, collect_simulation_data,
-    create_comparison_plots, create_overall_summary, run_contact_pressure_analysis
-)
+# Import helper functions from the local T1 module; fall back to direct import
+# when the script is executed standalone.
+try:
+    from .T1 import (
+        load_matlab_txt,
+        round2,
+        parse_geometry,
+        parse_operating_conditions,
+        create_cumulative_pressure_map,
+        collect_simulation_data,
+        create_comparison_plots,
+        create_overall_summary,
+        run_contact_pressure_analysis,
+    )
+except (ImportError, ValueError):
+    from T1 import (  # type: ignore
+        load_matlab_txt,
+        round2,
+        parse_geometry,
+        parse_operating_conditions,
+        create_cumulative_pressure_map,
+        collect_simulation_data,
+        create_comparison_plots,
+        create_overall_summary,
+        run_contact_pressure_analysis,
+    )
 
 # --- Flexible Parameter Parsing Functions ---
 
